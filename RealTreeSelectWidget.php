@@ -93,7 +93,7 @@ class RealTreeSelectWidget extends CInputWidget {
 	 * @param CActiveRecord[] $items part of tree nodes
 	 * @param int $exeptid node pk which will remove from options with subnodes
 	 * @param int $level tree level
-	 * @return array часть массива для вывода в виджете select
+	 * @return array part of data
 	 */
 	protected function recursiveGenerateOpgrouptedSelect($items, $exeptid, $level) {
 		$result = array();
