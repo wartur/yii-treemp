@@ -1,12 +1,12 @@
 <?php
 
 /**
- * RealTreeSelectWidgetTest class file.
+ * RealActiveRecordTreeBehaviorTest class file.
  *
  * @author		Krivtsov Artur (wartur) <gwartur@gmail.com> | Made in Russia
  * @copyright	Krivtsov Artur © 2014
- * @link		http://wartur.ru/me	(ПОМЕНЯТЬ НА GITHUB)
- * @license		http://wartur.ru/license
+ * @link		https://github.com/wartur/yii-tree-mp-behavior
+ * @license		New BSD license
  */
 
 /**
