@@ -1,8 +1,9 @@
-CREATE TABLE `treetest` (
+DROP TABLE IF EXISTS `treetest`;
+CREATE TABLE IF NOT EXISTS `treetest` (
 	`id`		INT(11)			NOT NULL	AUTO_INCREMENT,
 	`name`		VARCHAR(255)	NOT NULL,
 	`parent_id`	INT(11)				NULL,
 	`path`		VARCHAR(255)	NOT NULL,
 	PRIMARY KEY (`id`),
-	UNIQUE KEY `path` (`path`),
-);
+	UNIQUE KEY `path` (`path`)
+) ENGINE=MEMORY  DEFAULT CHARSET=utf8;

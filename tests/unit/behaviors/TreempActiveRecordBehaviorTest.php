@@ -1,18 +1,18 @@
 <?php
 
 /**
- * RealActiveRecordTreeBehaviorTest class file.
+ * TreempActiveRecordBehaviorTest class file.
  *
  * @author		Krivtsov Artur (wartur) <gwartur@gmail.com> | Made in Russia
  * @copyright	Krivtsov Artur © 2014
- * @link		https://github.com/wartur/yii-tree-mp-behavior
+ * @link		https://github.com/wartur/yii-treemp
  * @license		New BSD license
  */
 
 /**
- * RealActiveRecordTreeBehaviorTest
+ * TreempActiveRecordBehaviorTest
  */
-class RealActiveRecordTreeBehaviorTest extends CDbTestCase {
+class TreempActiveRecordBehaviorTest extends CDbTestCase {
 
 	protected $fixtures = array(
 		'treetest' => 'Treetest',

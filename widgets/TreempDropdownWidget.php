@@ -1,11 +1,11 @@
 <?php
 
 /**
- * RealTreeSelectWidget class file.
+ * TreempDropdownWidget class file.
  *
  * @author		Krivtsov Artur (wartur) <gwartur@gmail.com> | Made in Russia
  * @copyright	Krivtsov Artur © 2014
- * @link		https://github.com/wartur/yii-tree-mp-behavior
+ * @link		https://github.com/wartur/yii-treemp
  * @license		New BSD license
  */
 
@@ -14,7 +14,7 @@
  * It using RealActiveRecordTreeBehavior for data source
  * 
  * <pre>
- * <? $this->widget('RealTreeSelectWidget', array(
+ * <? $this->widget('treemp.widgets.TreempDropdownWidget', array(
  *     'model' => $model,
  *     'attribute' => 'parent_id',
  *     'deleteHimself' => true,
@@ -25,7 +25,7 @@
  * 
  * Widget extend CInputWidget
  */
-class RealTreeSelectWidget extends CInputWidget {
+class TreempDropdownWidget extends CInputWidget {
 
 	/**
 	 * @var boolean if true, then this node and all children will remove from select input

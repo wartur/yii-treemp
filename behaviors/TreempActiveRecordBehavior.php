@@ -1,11 +1,11 @@
 <?php
 
 /**
- * RealActiveRecordTreeBehavior class file.
+ * TreempActiveRecordBehavior class file.
  *
  * @author		Krivtsov Artur (wartur) <gwartur@gmail.com> | Made in Russia
  * @copyright	Krivtsov Artur © 2014
- * @link		https://github.com/wartur/yii-tree-mp-behavior
+ * @link		https://github.com/wartur/yii-treemp
  * @license		New BSD license
  */
 
@@ -27,8 +27,8 @@
  * <pre>
  * public function behaviors() {
  * 	return array_merge(parent::behaviors(), array(
- * 		'realActiveRecordTreeBehavior' => array(
- * 			'class' => 'RealActiveRecordTreeBehavior',
+ * 		'TreempActiveRecordBehavior' => array(
+ * 			'class' => 'treemp.behaviors.TreempActiveRecordBehavior',
  * 			// other params
  * 			'sequenceOrder' => 'name ASC',
  * 			'nameField' => 'name',
@@ -48,7 +48,7 @@
  * Common recommendation:
  * For all operation recommend USE TRANSACTIONS
  */
-class RealActiveRecordTreeBehavior extends CActiveRecordBehavior {
+class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 
 	/**
 	 * Ram cache rootline name
