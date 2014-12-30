@@ -50,17 +50,8 @@ class TreempDropdownWidget extends CInputWidget {
 
 	public function init() {
 		parent::init();
-
-		/*
-		 * layout understandably error, if model not compatible
-		 * wait next Yii release... need method hasBehavior. This workaround not work.
-		 * 
-		  if(!method_exists($this->model, 'getRootline')) {
-		  throw new CException(Yii::t('RealTreeSelectWidget','{class} must exists recursiveGenerateSelect method, defined in RealActiveRecordTreeBehavior',array('{class}'=>get_class($this->model))));
-		  }
-		 */
-
-		$this->emptyText = $this->emptyText === null ? Yii::t('RealTreeSelectWidget', '(Select parent)') : $this->emptyText;
+		
+		$this->emptyText = $this->emptyText === null ? Yii::t('TreempDropdownWidget', '(Select parent)') : $this->emptyText;
 	}
 
 	public function run() {
@@ -82,10 +73,10 @@ class TreempDropdownWidget extends CInputWidget {
 
 		// need walk around all tree, cache it
 		if($this->useCacheInternal) {
-			$this->model->loadAllTreeCache();
+			$this->model->treempLoadAllTreeCache();
 		}
 
-		return $this->recursiveGenerateOpgrouptedSelect($this->model->getRootline(), $exeptid, 0);
+		return $this->recursiveGenerateOpgrouptedSelect($this->model->treempGetRootline(), $exeptid, 0);
 	}
 
 	/**
@@ -104,10 +95,10 @@ class TreempDropdownWidget extends CInputWidget {
 				continue;
 			}
 
-			$result[$entry->getPrimaryKey()] = $bspResult . $entry->getNodeName();
+			$result[$entry->getPrimaryKey()] = $bspResult . $entry->treempGetNodeName();
 
-			if ($entry->getChildExists($this->useCacheInternal)) {
-				$result += $this->recursiveGenerateOpgrouptedSelect($entry->getChildren(), $exeptid, $level + 1);
+			if ($entry->treempGetChildExists($this->useCacheInternal)) {
+				$result += $this->recursiveGenerateOpgrouptedSelect($entry->treempGetChildren(), $exeptid, $level + 1);
 			}
 		}
 

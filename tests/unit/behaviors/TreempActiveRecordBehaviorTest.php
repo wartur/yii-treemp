@@ -75,7 +75,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	// tests
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::getNodeName
+	 * @covers TreempActiveRecordBehavior::getNodeName
 	 */
 	public function testGetNodeName() {
 		$object = new Treetest();
@@ -90,7 +90,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::getParent
+	 * @covers TreempActiveRecordBehavior::getParent
 	 */
 	public function testGetParent() {
 		$parentNode4 = Treetest::model()->findByPk($this->treetest['node4']['id']);
@@ -100,23 +100,23 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 		$this->assertEquals($this->treetest['node3']['id'], $parentNode3->id);
 
 		// get with cache
-		$parentNode1 = $parentNode3->getParent();
+		$parentNode1 = $parentNode3->treempGetParent();
 		$this->assertEquals($this->treetest['node1']['id'], $parentNode1->id);
 
 		// get cached node
-		$parentNode1Cached = $parentNode3->getParent();
+		$parentNode1Cached = $parentNode3->treempGetParent();
 		$this->assertEquals($this->treetest['node1']['id'], $parentNode1Cached->id);
 
 		// check cache equals
 		$this->assertEquals($parentNode1, $parentNode1Cached);
 
 		// get null
-		$parentNodeNull = $parentNode1->getParent();
+		$parentNodeNull = $parentNode1->treempGetParent();
 		$this->assertNull($parentNodeNull);
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::getChildren
+	 * @covers TreempActiveRecordBehavior::getChildren
 	 */
 	public function testGetChildren() {
 		$rootNode = Treetest::model()->findByPk($this->treetest['node1']['id']);
@@ -143,7 +143,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 		$this->assertEquals(8, $childrenFromCached[8]->id);
 
 		// get empty
-		$emptyChildren = $childrenFromCached[8]->getChildren();
+		$emptyChildren = $childrenFromCached[8]->treempGetChildren();
 		$this->assertInternalType('array', $emptyChildren);
 		$this->assertEmpty($emptyChildren);
 
@@ -177,7 +177,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::getChildrenCount
+	 * @covers TreempActiveRecordBehavior::getChildrenCount
 	 */
 	public function testGetChildrenCount() {
 		$rootNode = Treetest::model()->findByPk($this->treetest['node1']['id']);
@@ -188,7 +188,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::getChildExists
+	 * @covers TreempActiveRecordBehavior::getChildExists
 	 */
 	public function testGetChildExists() {
 		// has nodes
@@ -204,7 +204,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::getParentExists
+	 * @covers TreempActiveRecordBehavior::getParentExists
 	 */
 	public function testGetParentExists() {
 		// has parent
@@ -220,7 +220,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::getRootline
+	 * @covers TreempActiveRecordBehavior::getRootline
 	 */
 	public function testGetRootline() {
 		$model = new Treetest();
@@ -300,7 +300,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::getPathArray
+	 * @covers TreempActiveRecordBehavior::getPathArray
 	 */
 	public function testGetPathArray() {
 		$record = Treetest::model()->findByPk($this->treetest['node5']['id']);
@@ -309,7 +309,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::getNodeByPk
+	 * @covers TreempActiveRecordBehavior::getNodeByPk
 	 */
 	public function testGetNodeByPk() {
 		$model = new Treetest();
@@ -341,7 +341,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::getChildById
+	 * @covers TreempActiveRecordBehavior::getChildById
 	 */
 	public function testGetChildById() {
 		$model = Treetest::model()->findByPk($this->treetest['node1']['id']);
@@ -361,7 +361,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::getParentById
+	 * @covers TreempActiveRecordBehavior::getParentById
 	 */
 	public function testGetParentById() {
 		$model = Treetest::model()->findByPk($this->treetest['node5']['id']);
@@ -377,7 +377,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::isAncestor
+	 * @covers TreempActiveRecordBehavior::isAncestor
 	 */
 	public function testIsAncestor() {
 		$model = Treetest::model()->findByPk($this->treetest['node1']['id']);
@@ -400,7 +400,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::isDescendant
+	 * @covers TreempActiveRecordBehavior::isDescendant
 	 */
 	public function testIsDescendant() {
 		$model = Treetest::model()->findByPk($this->treetest['node5']['id']);
@@ -423,7 +423,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::getRootParent
+	 * @covers TreempActiveRecordBehavior::getRootParent
 	 */
 	public function testGetRootParent() {
 		$model = Treetest::model()->findByPk($this->treetest['node5']['id']);
@@ -433,14 +433,14 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 		$this->assertEquals(1, $rootParent->id);
 
 		// himself
-		$rootParentHimseld = $rootParent->getRootParent();
+		$rootParentHimseld = $rootParent->treempGetRootParent();
 		$this->assertEquals($rootParent, $rootParentHimseld);
 	}
 
 	/**
 	 * can check this indirectly
 	 * 
-	 * @covers RealActiveRecordTreeBehavior::cleanoutCache
+	 * @covers TreempActiveRecordBehavior::cleanoutCache
 	 */
 	public function testCleanoutCache() {
 		$model = new Treetest();
@@ -461,7 +461,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	/**
 	 * can check this indirectly
 	 * 
-	 * @covers RealActiveRecordTreeBehavior::loadAllTreeCache
+	 * @covers TreempActiveRecordBehavior::loadAllTreeCache
 	 */
 	public function testLoadAllTreeCache() {
 		$model = new Treetest();
@@ -481,7 +481,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	/**
 	 * can check this indirectly
 	 * 
-	 * @covers RealActiveRecordTreeBehavior::loadAllBranchCache
+	 * @covers TreempActiveRecordBehavior::loadAllBranchCache
 	 */
 	public function testLoadAllBranchCache() {
 		$model = Treetest::model()->findByPk($this->treetest['node3']['id']);
@@ -498,7 +498,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::rebuildAllPath
+	 * @covers TreempActiveRecordBehavior::rebuildAllPath
 	 */
 	public function testRebuildAllPath() {
 		$node1Src = Treetest::model()->findByPk($this->treetest['node1']['id']);
@@ -559,7 +559,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::rebuildAllPathBranch
+	 * @covers TreempActiveRecordBehavior::rebuildAllPathBranch
 	 */
 	public function testRebuildAllPathBranch() {
 		$node1Src = Treetest::model()->findByPk($this->treetest['node1']['id']);
@@ -633,7 +633,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::getBranchLikeCondition
+	 * @covers TreempActiveRecordBehavior::getBranchLikeCondition
 	 */
 	public function testGetBranchLikeCondition() {
 		$node = Treetest::model()->findByPk($this->treetest['node4']['id']);
@@ -642,7 +642,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::checkForLoop
+	 * @covers TreempActiveRecordBehavior::checkForLoop
 	 */
 	public function testCheckForLoop() {
 		$node = Treetest::model()->findByPk($this->treetest['node1']['id']);
@@ -658,7 +658,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::beforeValidate
+	 * @covers TreempActiveRecordBehavior::beforeValidate
 	 */
 	public function testBeforeValidate() {
 		$node = Treetest::model()->findByPk($this->treetest['node1']['id']);
@@ -675,7 +675,7 @@ class TreempActiveRecordBehaviorTest extends CDbTestCase {
 	}
 
 	/**
-	 * @covers RealActiveRecordTreeBehavior::afterSave
+	 * @covers TreempActiveRecordBehavior::afterSave
 	 */
 	public function testAfterSave() {
 		$node = Treetest::model()->findByPk($this->treetest['node3']['id']);
