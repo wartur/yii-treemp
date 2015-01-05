@@ -34,67 +34,67 @@
  * 			'nameField' => 'name',
  * 			'parentField' => 'parent_id',
  * 			'pathField' => 'path',
- * 			'useCacheInternal' => true
+ * 			'useCacheInternal' => true,
+ *			'usePathPackageUpdate' => true
  * 		)
  * 	));
  * }
  * </pre>
  * 
- * Дополнительная информация:
- * Есл вы используете useCacheInternal = false и передаете в методы useCache = false
- * мобель будет использовать только запросы по полю parent_id, без использования path
- * Это не рекомендуется из-за ухудшения производительности
+ * Additional Information:
+ * If you are using $useCacheInternal = false and passed into the method $useCache = false
+ * model will use only the requests on the field parent_id, without path.
+ * This is not recommended because of performance degradation
  * 
- * Рекомендации:
- * Для всех операций обновлений дерева требуется использовать транзакции
+ * Recommendations:
+ * For all operations update the tree you want to use transactions
  */
 class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 
 	/**
-	 * Идентификатор корневой записи в кеше
+	 * ID of the root entry in the cache
 	 */
 	const ROOT = 'root';
 
 	/**
-	 * Разделитель материализованного пути
+	 * Materialized path separator
 	 */
 	const PATH_DELIMETR = ':';
 
 	/**
-	 * @var string порядок сортировки при выводе записей дерева
+	 * @var string the sort order of the derivation tree records
 	 */
 	public $sequenceOrder = 'name ASC';
 
 	/**
-	 * @var string поле названия
+	 * @var string field name
 	 */
 	public $nameField = 'name';
 
 	/**
-	 * @var string поле идентфикатор родителья
+	 * @var string field ID of the parent
 	 */
 	public $parentField = 'parent_id';
 
 	/**
-	 * @var string поле материализованного пути
+	 * @var string field materialized path
 	 * format 1:3:4:
 	 * search as LIKE '1:3:%'
 	 */
 	public $pathField = 'path';
 
 	/**
-	 * @var boolean флаг использования кеша во внутренних операциях модели,
-	 * например обновление материализованного пути в рекурсивном режиме
-	 * сначала кеширует все записи ветки одим запросом, а потом обновляет их.
+	 * @var boolean flag the cache in internal operations model,
+	 * such as updating the materialized path in recursive mode
+	 * first caches all entries branches widely regarded as one request,
+	 * and then updates them.
 	 */
 	public $useCacheInternal = true;
 
 	/**
-	 * @var boolean флаг использования пакетного обновления материализованного пути.
-	 * Если false будет использовано рекурсивное обновление материализованного пути.
-	 * Так же читайте про флаг useCacheInternal
-	 * 
-	 * @todo Имплементировать в 2.0.0
+	 * @var boolean flag to use batch update materialized path.
+	 * If false is used recursively update the materialized path.
+	 * Also read about the flag $useCacheInternal
 	 */
 	public $usePathPackageUpdate = true;
 
@@ -104,15 +104,13 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	 * the more records at a time is loaded from the database.
 	 * If the packet size is equal to 1,
 	 * it is assumed that the batch processing is disabled
-	 * 
-	 * See ALGORITHM.md
 	 */
 	public $packageSize = 200;
 
 	/**
-	 * @var array массив моделей группированные под определенным названием класса.
-	 * (для поддержки поведением множества классов одновременно)
-	 * Структура:
+	 * @var array an array of models grouped under a specific name class.
+	 * (to support the behavior of many classes at the same time)
+	 * Structure:
 	 * <pre>
 	 * array(
 	 * 		'classname' => array(
@@ -127,9 +125,9 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	private static $_cacheActiveRecords = array();
 
 	/**
-	 * @var array массив связей группированные под определенным названием класса.
-	 * (для поддержки поведением множества классов одновременно)
-	 * Структура:
+	 * @var array an array of links grouped under a specific name class.
+	 * (to support the behavior of many classes at the same time)
+	 * Structure:
 	 * <pre>
 	 * array(
 	 * 		'classname' => array(
@@ -148,14 +146,14 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	private static $_cacheIndexChildren = array();
 
 	/**
-	 * @var mixed оригинальное значение parent_id (see: AfterFind)
-	 * Используется для активации действий поведения
+	 * @var mixed the original value parent_id (see: AfterFind)
+	 * Is used for the activation of Conduct
 	 */
 	protected $originalParentId = null;
 
 	/**
-	 * @var int оригинальное значение первичного ключа (see: AfterFind)
-	 * Используется для активации действий поведения
+	 * @var int the original value of the primary key (see: AfterFind)
+	 * Is used for the activation of Conduct
 	 */
 	protected $originalPk = null;
 
@@ -168,9 +166,9 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Получить родительскую ноду
-	 * @param boolean $useCache true для использования кеша при получении (default=true)
-	 * @return CActiveRecord|null родительская модель или null если это корень
+	 * Get the parent node
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
+	 * @return CActiveRecord|null parent model or null if this is the root
 	 */
 	public function treempGetParent($useCache = true) {
 		$parentField = $this->parentField;
@@ -193,11 +191,10 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 			$cacheActiveRecords[$this->owner->$parentField] = $parent;
 
 			/*
-			 * Если вы считаете, что тут требуется записывать в $cacheIndexChildren...
-			 * Этого делать не требуется, потому что кеш может быть кеширован
-			 * либо полностью, либо вообще не кеширован. Неполное заполнение
-			 * может нарушить работу алгоритма кеширования. Для получения полного
-			 * кеша требуеся пользоваться методом getChildren или loadAllBranchCache
+			 * If you think that there must write to the $cacheIndexChildren...
+			 * To do so is not required, because the cache can be cached either completely or not at all cached.
+			 * Incomplete filling can disrupt the caching algorithm.
+			 * For a complete cache is required to use the method self::treempGetChildren or self::loadAllBranchCache
 			 */
 
 			return $parent;
@@ -207,9 +204,9 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Получить всех потомков текущей записи
-	 * @param boolean $useCache true для использования кеша при получении (default=true)
-	 * @return CActiveRecord[] модели потомки, упорядоченные по $sequenceOrder
+	 * Get all the descendants of the current record
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
+	 * @return CActiveRecord[] model descendants sorted by $sequenceOrder
 	 */
 	public function treempGetChildren($useCache = true) {
 		$currentPk = $this->owner->getPrimaryKey();
@@ -235,8 +232,7 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 				$cacheIndexChildren[$currentPk][$childPk] = $entry;
 
 				/*
-				 * Не кешируйте $cacheIndexChildren[$childPk] = array(), так как
-				 * частичное заполнение кеша сломает алгорим
+				 * Not cached $cacheIndexChildren[$childPk] = array(), as partial filling cache algorithm breaks
 				 */
 			}
 
@@ -247,9 +243,9 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Получить количество потомков
-	 * @param boolean $useCache true для использования кеша при получении (default=true)
-	 * @return integer количество потомков
+	 * Get the number of descendants
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
+	 * @return integer number of descendants
 	 */
 	public function treempGetChildrenCount($useCache = true) {
 		if ($useCache) {
@@ -260,16 +256,16 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Присутствуют ли потомки у текущей модели
-	 * @param boolean $useCache true для использования кеша при получении (default=true)
-	 * @return boolean если true присутсвут
+	 * Are there descendants of the current model
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
+	 * @return boolean true if has
 	 */
 	public function treempGetChildExists($useCache = false) {
 		return $this->treempGetChildrenCount($useCache) > 0;
 	}
 
 	/**
-	 * Присутсвует ли предок у текущей модели
+	 * Whether there is an ancestor of the current model
 	 * @return boolean true if has parent
 	 */
 	public function treempGetParentExists() {
@@ -279,9 +275,9 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Получить список корневых моделей
-	 * @param boolean $useCache true для использования кеша при получении (default=true)
-	 * @return CActiveRecord[] модели предки, упорядоченные по $sequenceOrder
+	 * Get a list of root models
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
+	 * @return CActiveRecord[] model ancestors sorted by $sequenceOrder
 	 */
 	public function treempGetRootline($useCache = true) {
 		if ($useCache) {
@@ -305,8 +301,7 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 				$cacheIndexChildren[self::ROOT][$childPk] = $entry;
 
 				/*
-				 * Не кешируйте $cacheIndexChildren[$childPk] = array(), так как
-				 * частичное заполнение кеша сломает алгорим
+				 * Not cached $cacheIndexChildren[$childPk] = array(), as partial filling cache algorithm breaks
 				 */
 			}
 
@@ -327,13 +322,11 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Получение моделей пути, упорядоченные по вложенности
+	 * Getting the path models, sorted by nesting
 	 * 
-	 * При выполнении данного метода в цикле, напимер при выгрузке данных или
-	 * вывода в таблице рекомендуется продумать целесообразность использования
-	 * loadAllTreeCache или loadAllBranchCache. В противном случае алгоритм попытается
-	 * максимально эффективно загрузить записи через использование кеша. Отключение
-	 * кешированя крайне негативно скажется на производительности генерации пути.
+	 * In carrying out this method in a loop, for example when unloading or output data in the table, it is advisable to consider the feasibility of using loadAllTreeCache or loadAllBranchCache.
+	 * Otherwise, the algorithm tries to download as efficiently as possible through the use of cache entries.
+	 * Disabling caching negatively affect the performance of path generation.
 	 * 
 	 * @param boolean $useCache true для использования кеша при получении (default=true)
 	 * @return CActiveRecord[] модели пути упорядоченные по вложенности
@@ -347,8 +340,6 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 			foreach ($pathArray as $entryId) {
 				$result[$entryId] = $this->treempGetNodeByPk($entryId, $useCache);
 			}
-
-			return $result;
 		} else {
 			// загрузить одним запросом и собрать последовательность
 			$criteria = new CDbCriteria();
@@ -364,13 +355,15 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 				}
 			}
 		}
+		
+		return $result;
 	}
 
 	/**
 	 * Получить элемент дерева
 	 * @param mixed $pk первичный ключ
-	 * @param boolean $useCache true для использования кеша при получении (default=true)
-	 * @return CActiveRecord|null модель или null если такой записи не найдено
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
+	 * @return CActiveRecord|null model or null if such a record is not found
 	 */
 	public function treempGetNodeByPk($pk, $useCache = true) {
 		if ($useCache) {
@@ -385,11 +378,10 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 			$cacheActiveRecords[$pk] = $element;
 
 			/*
-			 * Если вы считаете, что тут требуется записывать в $cacheIndexChildren...
-			 * Этого делать не требуется, потому что кеш может быть кеширован
-			 * либо полностью, либо вообще не кеширован. Неполное заполнение
-			 * может нарушить работу алгоритма кеширования. Для получения полного
-			 * кеша требуеся пользоваться методом getChildren или loadAllBranchCache
+			 * If you think that there must write to the $cacheIndexChildren...
+			 * To do so is not required, because the cache can be cached either completely or not at all cached.
+			 * Incomplete filling can disrupt the caching algorithm.
+			 * For a complete cache is required to use the method self::treempGetChildren or self::loadAllBranchCache
 			 */
 
 			return $element;
@@ -399,19 +391,19 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Поиск в потомках по PK
-	 * @param mixed $pk искомый первичный ключ
-	 * @param boolean $useCache true для использования кеша при получении (default=true)
-	 * @return CActiveRecord|null модель или null если такой записи не найдено, либо она не является потомоком текущей
+	 * Search descendants PK
+	 * @param mixed $pkSeeking primary key
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
+	 * @return CActiveRecord|null model or null if such a record is not found, or it is not a child of the current
 	 */
 	public function treempGetChildById($pk, $useCache = true) {
-		// получить предполагаемого потомка
+		// get the expected offspring
 		$supposedChild = $this->treempGetNodeByPk($pk, $useCache);
 		if (empty($supposedChild)) {
 			return null;
 		}
 
-		// проверяем, что PK текущей моделт находится в предках предполагаемой модели
+		// check that the current PK model is within the proposed model
 		if (in_array($this->owner->getPrimaryKey(), $supposedChild->treempGetPathArray())) {
 			return $supposedChild;
 		} else {
@@ -420,10 +412,10 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Поиск в родителях по PK
-	 * @param mixed $pk искомый первичный ключ
-	 * @param boolean $useCache true для использования кеша при получении (default=true)
-	 * @return CActiveRecord|null модель или null если такой записи не найдено, либо она не является предеком текущей
+	 * Search parents on PK
+	 * @param mixed $pk Seeking primary key
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
+	 * @return CActiveRecord|null model or null if such a record is not found, or it is not the parent of the current
 	 */
 	public function treempGetParentById($pk, $useCache = true) {
 		if (in_array($pk, $this->treempGetPathArray())) { // if has pk in path
@@ -434,47 +426,47 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Определяет, что указанная запись является предком для записи с указанным PK
-	 * @param mixed $pk значение первичного ключа для сравнения
-	 * @param boolean $useCache true для использования кеша при получении (default=true)
+	 * Specifies that the specified record is the ancestor of the specified record for PK
+	 * @param mixed $pk the primary key value for comparison
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
 	 * @return boolean
 	 */
 	public function treempIsAncestor($pk, $useCache = true) {
-		if (empty($pk)) { // точно не предок =)
+		if (empty($pk)) {
 			return false;
 		}
 
-		if ($this->owner->getPrimaryKey() == $pk) { // самjому себе является предком
+		if ($this->owner->getPrimaryKey() == $pk) { // itself is an ancestor
 			return true;
 		}
 
-		// поиск в наследниках PK, если модель будет найдена, значит текущая модель является предком
+		// search heirs PK, if the model is found, then the current model is the ancestor
 		return $this->treempGetChildById($pk, $useCache) !== null;
 	}
 
 	/**
-	 * Определяет, что указанная запись является наследником для записи с указанным PK
-	 * @param mixed $pk значение первичного ключа для сравнения
-	 * @param boolean $useCache true для использования кеша при получении (default=true)
+	 * Specifies that the specified record is the successor to the specified record PK
+	 * @param mixed $pk the primary key value for comparison
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
 	 * @return boolean
 	 */
 	public function treempIsDescendant($pk, $useCache = true) {
-		if (empty($pk)) { // точно не наследник =)
+		if (empty($pk)) {
 			return false;
 		}
 
-		if ($this->owner->getPrimaryKey() == $pk) { // самому себе является наследником
+		if ($this->owner->getPrimaryKey() == $pk) { // itself is an ancestor
 			return true;
 		}
 
-		// поиск в предках по PK, если модель будет найдена, значит текущая модель является наследником
+		// search for ancestors PK, if the model is found, then the current model is the successor
 		return $this->treempGetParentById($pk, $useCache) !== null;
 	}
 
 	/**
-	 * Получить корень ветки
-	 * @param boolean $useCache true для использования кеша при получении (default=true)
-	 * @return CActiveRecord|null модель или null если такой записи не найдено (что маловероятно)
+	 * Get root branches
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
+	 * @return CActiveRecord|null model or null if such records are not found (which is unlikely)
 	 */
 	public function treempGetRootParent($useCache = true) {
 		$pathArray = $this->treempGetPathArray();
@@ -490,7 +482,7 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Отчистна оперативного кеша
+	 * Cleanup of the ram cache
 	 */
 	public function treempCleanoutCache() {
 		$cacheActiveRecords = &$this->getCacheStoreActiveRecords();
@@ -501,14 +493,14 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Загрузить все записи и построить дерево
+	 * Load all records and build a tree
 	 * 
-	 * Заметка по оптимизации:
-	 * Используйте данный метод если заранее известно, что потребуется все дерево.
-	 * Пример работы: TreempDropdownWidget
+	 * Note optimization:
+	 * Use this method if you know that it will take the whole tree.
+	 * example work you can see in TreempDropdownWidget
 	 * 
-	 * Метод НЕ ИСПОЛЬЗУЕТ материализованные пути. Его можно использовать
-	 * для восстановления материализованного пути в случае сбоя, используя parent_id
+	 * Method DOES NOT use the materialized path.
+	 * It can be used to restore the materialized path in case of failure, using parent_id
 	 */
 	public function treempLoadAllTreeCache() {
 		$this->treempCleanoutCache();
@@ -523,10 +515,10 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 			$entryPk = $entry->getPrimaryKey();
 			$parentEntryPk = $entry->$parentField;
 
-			// кешируем модель
+			// caching model
 			$cacheActiveRecords[$entryPk] = $entry;
 
-			// кешируем связи
+			// caching links
 			if ($parentEntryPk === null) { // is rootline node
 				$cacheIndexChildren[self::ROOT][$entryPk] = $entry;
 
@@ -544,26 +536,23 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Загрузить все записи ветки и построить дерево
+	 * Load all records and build a tree branch
 	 * 
-	 * Оптимизированная процедура, если заранее известно, что потребуются
-	 * все записи ветки дерева
+	 * The optimized procedure, if you know that it will take all the records tree branch
 	 * 
-	 * Метод ИСПОЛЬЗУЕТ материализованные пути для оптимизации запроса в БД
+	 * The method USES the materialized path to optimize the query to the database
 	 */
 	public function treempLoadBranchCache() {
 		$this->treempCleanoutCache();
 
 		/*
 		 * Information:
-		 * Быстрый запрос по материализованному пути
+		 * Quick inquiry materialized path
 		 * 
-		 * Как это работает при обновлении parent_id?
-		 * После обновления записи например при перемещении ветки дерева
-		 * в базе данных остается устаревшая информация в поле path. Идет
-		 * запрос ветки по устаревшей информации. Далее строится дерево
-		 * и происходит созранения всех потомков в методе rebuildAllBranchIndex
-		 * с указанием нового path
+		 * How does it work when you upgrade parent_id?
+		 * After updating the record such as moving tree branches in a database is outdated information in the path.
+		 * There is a request for branches outdated information.
+		 * Next, we construct the tree is saved and all the descendants of the method rebuildAllBranchIndex indicating a new path
 		 */
 		$criteria = new CDbCriteria();
 		$criteria->addSearchCondition($this->pathField, $this->treempGetBranchLikeCondition(), false);
@@ -578,7 +567,7 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 			$entryPk = $entry->getPrimaryKey();
 			$parentEntryPk = $entry->$parentField;
 
-			$cacheActiveRecords[$entryPk] = $entry; // кеширование модели
+			$cacheActiveRecords[$entryPk] = $entry; // caching model
 
 			if (empty($parentEntryPk)) {
 				$cacheIndexChildren[self::ROOT][$entryPk] = $entry;
@@ -587,20 +576,22 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 			}
 
 			if (!isset($cacheIndexChildren[$entryPk])) {
-				$cacheIndexChildren[$entryPk] = array();   // установить пустым, может быть заполнится при следующей итерации
+				$cacheIndexChildren[$entryPk] = array();   // Place an empty can be filled in the next iteration
 			}
 		}
 	}
 
 	/**
-	 * Полностью перестроить материализованный путь
+	 * Completely rebuild the materialized path
 	 * 
-	 * DANGER: Это наиболее тяжелая операция!!!
-	 * Метод может использоваться для восстановления целостности данных, либо
-	 * для первой генерациии материализованного пути
+	 * DANGER: This is the most difficult operation!!!
+	 * The method can be used to restore the integrity of the data, or for the generation of the first path materialized
 	 * 
-	 * Метод НЕ ИСПОЛЬЗУЕТ материализованные пути
-	 * @param boolean $useCache true для использования кеша (default=true)
+	 * Method DOES NOT use the materialized path
+	 * 
+	 * If you want to build a big tree (over 10k records), use $ useCache = false
+	 * 
+	 * @param boolean $useCache true for using cache (default=true)
 	 */
 	public function treempRebuildAllPath($useCache = true) {
 		if ($useCache) {
@@ -610,12 +601,12 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 		$rootLine = $this->treempGetRootline($useCache);
 
 		foreach ($rootLine as $rootEntry) {
-			$rootEntry->rebuildAllPathBranchRecursive($useCache);
+			$rootEntry->treempRebuildAllPathBranchRecursive($useCache);
 		}
 	}
 
 	/**
-	 * Генерировать условие LIKE для запроса ветки
+	 * Generate a LIKE query for branches
 	 * @return string
 	 */
 	public function treempGetBranchLikeCondition() {
@@ -623,55 +614,63 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Получить название текущего класса
-	 * return string название класса
+	 * Get the name of the current class
+	 * return string the name of the class
 	 */
 	public function treempGetOwnerClassName() {
 		return get_class($this->owner);
 	}
 
 	/**
-	 * Добавить потомка к текущей ноде
-	 * @param CActiveRecord $childModel
-	 * @param boolean $autoSave сразу записать изменения в базу данных
+	 * Add a child of the current node
+	 * @param CActiveRecord $childModel model to add to the descendants of the current
+	 * @param boolean $autoSave immediately write the changes to the database
+	 * @return boolean true is save success. If pass $autoSave = false, then return false
+	 * @throws CException if owner model is new
 	 */
 	public function treempAppendChild($childModel, $autoSave = true) {
 		if($this->owner->isNewRecord) {
-			throw new CException('Текущую модель невозможно установить родителем переданной, так как текущая модель является новой');
+			throw new CException(Yii::t('TreempActiveRecordBehavior', 'The current model can not be installed parents pass, as the current model is new'));
 		}
 		
 		$childModel->{$this->parentField} = $this->owner->id;
 		
 		if($autoSave) {
-			// перестройка path произойдет сама
-			$childModel->save();
+			// restructuring path will itself
+			return $childModel->save();
+		} else {
+			return false;
 		}
 	}
 
 	/**
-	 * Добавить текущую ноду в потомки к указанному родителю
-	 * @param CActiveRecord|null $parentModel модель или null, если требуется добавить как корневую ноду
-	 * @param boolean $autoSave сразу записать изменения в базу данных
+	 * Add the current node in the descendants of the specified parent
+	 * @param CActiveRecord|null $parentModel model or null, if you want to add as the root node
+	 * @param boolean $autoSave immediately write the changes to the database
+	 * @return boolean true is save success. If pass $autoSave = false, then return false
+	 * @throws CException if $parentModel is new
 	 */
 	public function treempAppendTo($parentModel, $autoSave = true) {
 		if(empty($parentModel)) {
 			$this->owner->{$this->parentField} = null;
 		} else {
 			if($parentModel->isNewRecord) {
-				throw new CException('Текущую модель невозможно установить потомком переданной, так как переданная модель является новой');
+				throw new CException(Yii::t('TreempActiveRecordBehavior', 'The current model can not be set descendant transmitted, as transmitted model is new'));
 			}
 			
 			$this->owner->{$this->parentField} = $parentModel->getPrimaryKey();
 		}
 		
-		// перестройка path произойдет сама
+		// restructuring path will itself
 		if($autoSave) {
-			$this->owner->save();
+			return $this->owner->save();
+		} else {
+			return false;
 		}
 	}
 
 	/**
-	 * Вставить текущую ноду после указанного PK
+	 * Insert the current node after specified PK
 	 * @param integer $pk node where insert after this node
 	 * @throws Exception Not Implemented Execption
 	 */
@@ -680,7 +679,7 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Вставить текущую ноду перед указанным PK
+	 * Insert the current node to the specified PK
 	 * @param integer $pk node where insert before this node
 	 * @throws Exception Not Implemented Execption
 	 */
@@ -689,7 +688,7 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Добавить в потомки указаного PK на первую позицию
+	 * Add to the descendants of the specified PC in the first position
 	 * @param integer $pk node where append to begin this subnode
 	 * @throws Exception Not Implemented Execption
 	 */
@@ -698,7 +697,7 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Добавить в потомки указаного PK на последнюю позицию
+	 * Add to the descendants of the specified PC to the last position of the position
 	 * @param integer $pk node where append to end this subnode
 	 * @throws Exception Not Implemented Execption
 	 */
@@ -707,10 +706,11 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Перестроить материализованный путь ветки дерева
-	 * @param boolean $useCache true для использования кеша (default=true)
+	 * Rebuild materialized path tree branches
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
 	 */
-	private function rebuildAllPathBranch($useCache = true) {
+	public function treempRebuildAllPathBranch($useCache = true) {
+		// batch update does not work if the original is damaged materialized path
 		if ($this->usePathPackageUpdate) {
 			$this->rebuildAllPathBranchPackageMode($useCache);
 		} else {
@@ -718,25 +718,25 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 				$this->treempLoadBranchCache();
 			}
 
-			$this->rebuildAllPathBranchRecursive($useCache);
+			$this->treempRebuildAllPathBranchRecursive($useCache);
 		}
 	}
 
 	/**
-	 * Перестроить материализованный путь ветки дерева используя
-	 * пакетный нерекурсивный метод
+	 * Rebuild materialized path tree branches using the batch method of FIR
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
 	 */
 	private function rebuildAllPathBranchPackageMode($useCache = true) {
 		$pathField = $this->pathField;
 
 		if ($this->owner->isNewRecord) {
-			// если это новая запись, то просто строим новый path
+			// if this is a new record, then just build a new path
 			$this->buildPath($useCache);
 		} else {
-			// если это не новая запись, то обновляем всех потомков
+			// if it is not a new record, then update all descendants
 			$srcPath = $this->owner->$pathField;
 
-			// сгенерировать path для корневой записи
+			// generate a path for the root entry
 			$this->buildPath($useCache);
 
 			$condition = new CDbCriteria();
@@ -744,7 +744,7 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 			$condition->limit = $this->packageSize;
 			$condition->offset = 0;
 
-			// пакетная обработка
+			// batch processing
 			do {
 				$nodes = $this->owner->model()->findAll($condition);
 
@@ -754,30 +754,43 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 					$entry->save();
 				}
 
-				// следующий пакет
+				// the next batch
 				$condition->offset += $this->packageSize;
 			} while (count($nodes) == $this->packageSize);
+			
+			// after changes in the offspring, clean obsolete cache
+			$this->treempCleanoutCache();
 		}
 	}
 
 	/**
-	 * Рекурсивный обход дерева и изменение поля path
-	 * @param boolean $useCache true для использования кеша (default=true)
+	 * Recursive tree and field change path
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
 	 */
-	private function rebuildAllPathBranchRecursive($useCache) {
+	public function treempRebuildAllPathBranchRecursive($useCache = true) {
 		$this->buildPath($useCache);
 
 		$children = $this->treempGetChildren($useCache);
 
 		foreach ($children as $entry) {
-			$entry->rebuildAllPathBranchRecursive($useCache);
+			$entry->treempRebuildAllPathBranchRecursive($useCache);
 		}
 	}
 
 	/**
-	 * Получить оперативный кеш моделей текущего класса
+	 * Check for loop or cycle
+	 * @return type
+	 */
+	public function treempCheckForLoop() {
+		$parentField = $this->parentField;
+
+		return $this->owner->$parentField != $this->originalParentId && $this->treempIsAncestor($this->owner->$parentField, false);
+	}
+
+	/**
+	 * Get prompt cache models of the current class
 	 * see self::$_cacheActiveRecords
-	 * return array УКАЗАТЕЛЬ на кеш
+	 * return array A POINTER to the cache
 	 */
 	private function &getCacheStoreActiveRecords() {
 		$ownerClassName = $this->treempGetOwnerClassName();
@@ -790,9 +803,9 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Полкучить оперативный кеш связей текщего класса
+	 * Get the operational cash bonds of the current class
 	 * see self::$_cacheIndexChildren
-	 * return array УКАЗАТЕЛЬ на кеш
+	 * return array A POINTER to the cache
 	 */
 	private function &getCacheStoreIndexChildren() {
 		$ownerClassName = $this->treempGetOwnerClassName();
@@ -805,10 +818,10 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Построить поле path для текущей записи. Для этого требуется знать
-	 * родительский path и текущий PK
-	 * @param boolean $useCache true для использования кеша (default=true)
-	 * @return boolean true в случае если удалось сохранить модель
+	 * Build path field for the current record.
+	 * This requires a parent to know the current path and PK
+	 * @param boolean $useCache true for use in the preparation of the cache (default=true)
+	 * @return boolean true if the model is able to maintain
 	 */
 	private function buildPath($useCache = true) {
 		$parentField = $this->parentField;
@@ -816,23 +829,24 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 
 		$parent = $this->treempGetParentExists() ? $this->treempGetParent($useCache) : null;
 
-		if (empty($parent)) { // это корневая нода
+		if (empty($parent)) { // is the root node
 			$this->owner->$pathField = $this->owner->getPrimaryKey() . ':';
 		} else {
 			$this->owner->$pathField = $parent->$pathField . $this->owner->getPrimaryKey() . ':';
 		}
 
-		// вместе с path обновлять кеш оригинальных значений
+		// along with the path to update the cache of the original values
 		$this->originalParentId = $this->owner->$parentField;
 		$this->originalPk = $this->owner->getPrimaryKey();
 
 		if ($this->owner->isNewRecord) {
 			/*
-			 * Если добавляется новая запись, модет происходить двойная вставка
-			 * это корректная работа CActiveRecord, но проблема для нас.
-			 * Исправим её! Это можно обработать через временную смену сценария модели,
-			 * однако оно мне показалось лишним. Кроме того, это может иметь
-			 * побочные эффекты в других поведениях.
+			 * If you are adding a new entry can be double insertion.
+			 * This work correctly CActiveRecord, but the problem for us.
+			 * fix it!
+			 * 
+			 * It can be treated through a temporary change of scenario models, but it seemed to me more than.
+			 * Furthermore, it may have side effects in other works.
 			 */
 			return $this->owner->updateByPk($this->owner->id, array(
 						$pathField => $this->owner->$pathField
@@ -848,16 +862,6 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	 */
 	private function primaryKeyName() {
 		return $this->owner->getMetaData()->tableSchema->primaryKey;
-	}
-
-	/**
-	 * Проверить на петлю или цикл
-	 * @return type
-	 */
-	private function checkForLoop() {
-		$parentField = $this->parentField;
-
-		return $this->owner->$parentField != $this->originalParentId && $this->treempIsAncestor($this->owner->$parentField, false);
 	}
 
 	/**
@@ -878,8 +882,8 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 		parent::beforeValidate($event);
 
 		// check at loop for new parent_id
-		if ($this->checkForLoop()) {
-			$this->owner->addError($this->parentField, Yii::t('RealActiveRecordTreeBehavior', 'detect loop for new parent_id({parent_id})', array('{parent_id}' => $this->owner->$parentField)));
+		if ($this->treempCheckForLoop()) {
+			$this->owner->addError($this->parentField, Yii::t('TreempActiveRecordBehavior', 'detect loop for new parent_id({parent_id})', array('{parent_id}' => $this->owner->{$this->parentField})));
 		}
 	}
 
@@ -893,7 +897,7 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 
 		// if change pk|parent_id
 		if ($this->owner->$parentField != $this->originalParentId || $this->owner->getPrimaryKey() != $this->originalPk) {
-			$this->rebuildAllPathBranch($this->useCacheInternal);
+			$this->treempRebuildAllPathBranch($this->useCacheInternal);
 		}
 	}
 

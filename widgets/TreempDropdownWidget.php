@@ -11,7 +11,7 @@
 
 /**
  * Widget generate select with tree level space indention
- * It using RealActiveRecordTreeBehavior for data source
+ * It using TreempActiveRecordBehavior for data source
  * 
  * <pre>
  * <? $this->widget('treemp.widgets.TreempDropdownWidget', array(
@@ -44,7 +44,7 @@ class TreempDropdownWidget extends CInputWidget {
 	public $emptyText = null;
 
 	/**
-	 * @var boolean using ram cache mechanism in RealActiveRecordTreeBehavior
+	 * @var boolean using ram cache mechanism in TreempActiveRecordBehavior
 	 */
 	public $useCacheInternal = true;
 
