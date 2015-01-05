@@ -35,7 +35,7 @@
  * 			'parentField' => 'parent_id',
  * 			'pathField' => 'path',
  * 			'useCacheInternal' => true,
- *			'usePathPackageUpdate' => true
+ * 			'usePathPackageUpdate' => true
  * 		)
  * 	));
  * }
@@ -355,7 +355,7 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 				}
 			}
 		}
-		
+
 		return $result;
 	}
 
@@ -629,13 +629,13 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	 * @throws CException if owner model is new
 	 */
 	public function treempAppendChild($childModel, $autoSave = true) {
-		if($this->owner->isNewRecord) {
+		if ($this->owner->isNewRecord) {
 			throw new CException(Yii::t('TreempActiveRecordBehavior', 'The current model can not be installed parents pass, as the current model is new'));
 		}
-		
+
 		$childModel->{$this->parentField} = $this->owner->id;
-		
-		if($autoSave) {
+
+		if ($autoSave) {
 			// restructuring path will itself
 			return $childModel->save();
 		} else {
@@ -651,18 +651,18 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	 * @throws CException if $parentModel is new
 	 */
 	public function treempAppendTo($parentModel, $autoSave = true) {
-		if(empty($parentModel)) {
+		if (empty($parentModel)) {
 			$this->owner->{$this->parentField} = null;
 		} else {
-			if($parentModel->isNewRecord) {
+			if ($parentModel->isNewRecord) {
 				throw new CException(Yii::t('TreempActiveRecordBehavior', 'The current model can not be set descendant transmitted, as transmitted model is new'));
 			}
-			
+
 			$this->owner->{$this->parentField} = $parentModel->getPrimaryKey();
 		}
-		
+
 		// restructuring path will itself
-		if($autoSave) {
+		if ($autoSave) {
 			return $this->owner->save();
 		} else {
 			return false;
@@ -757,7 +757,7 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 				// the next batch
 				$condition->offset += $this->packageSize;
 			} while (count($nodes) == $this->packageSize);
-			
+
 			// after changes in the offspring, clean obsolete cache
 			$this->treempCleanoutCache();
 		}
@@ -917,11 +917,11 @@ class TreempActiveRecordBehavior extends CActiveRecordBehavior {
 	}
 
 	/**
-	 * Индексировать список моделей по PK
+	 * Index list of models for PK
 	 * @param CActiveRecord $input
 	 */
 	private static function indexIt($input) {
-		$result = [];
+		$result = array();
 		foreach ($input as $entry) {
 			$result[$entry->getPrimaryKey()] = $entry;
 		}
