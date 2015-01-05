@@ -15,6 +15,5 @@ treemp.tests.unit >>> application/test/unit/extentions/wartur/yii-treemp
 ln -s /path/to/treemp__/tests/unut /path/to/project/tests__/unit/extentions/wartur
 If you have a Window, use junction
 
-- Создать семантическую ссылку для фикстуры
-
-- Настроить конфингурационный файл согласно описанию
+- customize the configuration file as it is done in the example
+example in directory: treemp.tests.env.config
