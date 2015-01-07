@@ -1,7 +1,7 @@
 <?php
 
 /**
- * TreempDropdownWidget class file.
+ * TreempAttachWidget class file.
  *
  * @author		Krivtsov Artur (wartur) <gwartur@gmail.com> | Made in Russia
  * @copyright	Krivtsov Artur © 2014

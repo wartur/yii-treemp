@@ -37,6 +37,11 @@ class TreempMultiattachActiveRecordBehavior extends CActiveRecordBehavior {
 	 * @var string поле модели для сохранения
 	 */
 	public $attachField = 'newAttachIds';
+	
+	/**
+	 * @var array список идентификаторов находящиеся на начало работы в бд
+	 */
+	private $storeRecordSet;
 
 	/**
 	 * Getting the name of the primary key
@@ -65,10 +70,31 @@ class TreempMultiattachActiveRecordBehavior extends CActiveRecordBehavior {
 			return $result;
 		}
 	}
+	
+	/**
+	 * Responds to {@link CActiveRecord::onAfterFind} event.
+	 * Override this method and make it public if you want to handle the corresponding event
+	 * of the {@link CBehavior::owner owner}.
+	 * @param CEvent $event event parameter
+	 */
+	public function afterFind($event) {
+		parent::afterFind($event);
+		
+		$multiAttachModelName = $this->multiAttachModelName;
+		
+		// получить исходный список. Записать в публичную переменную модели и в приватную переменную поведения
+		$this->owner->{$this->attachField} = $this->storeRecordSet = Yii::app()->db->createCommand()
+				->select($this->multiAttachModelTreempIdField)
+				->from($multiAttachModelName::model()->tableName())
+				->where($this->multiAttachModelTargetIdField . ' = :pk', array('pk' => $this->owner->getPrimaryKey()))
+				->queryColumn();
+	}
 
 	/**
-	 * Сохранения связей будет осуществляться сразу после сохранения основной записи
-	 * @param type $event
+	 * Responds to {@link CActiveRecord::onAfterSave} event.
+	 * Override this method and make it public if you want to handle the corresponding event
+	 * of the {@link CBehavior::owner owner}.
+	 * @param CEvent $event event parameter
 	 */
 	public function afterSave($event) {
 		parent::afterSave($event);
@@ -76,25 +102,15 @@ class TreempMultiattachActiveRecordBehavior extends CActiveRecordBehavior {
 		$multiAttachModelName = $this->multiAttachModelName;
 		$newRecordSet = $this->owner->{$this->attachField};
 
-		// получить исходный список
-		$storeRecordSet = Yii::app()->db->createCommand()
-				->select($this->multiAttachModelTreempIdField)
-				->from($multiAttachModelName::model()->tableName())
-				->where($this->multiAttachModelTargetIdField . ' = :pk', array('pk' => $this->owner->getPrimaryKey()))
-				->queryColumn();
-
-		$newDiff = array_diff($newRecordSet, $storeRecordSet);
-		$newModels = $this->findModelSet($newDiff); // дополнительная проверка для исключения дубликатов
+		$newDiff = array_diff($newRecordSet, $this->storeRecordSet);
 		foreach ($newDiff as $entry) {
-			if (empty($newModels[$entry])) {
-				$newModel = new $multiAttachModelName();
-				$newModel->{$this->multiAttachModelTargetIdField} = $this->owner->getPrimaryKey();
-				$newModel->{$this->multiAttachModelTreempIdField} = $entry;
-				$newModel->save();
-			}
+			$newModel = new $multiAttachModelName();
+			$newModel->{$this->multiAttachModelTargetIdField} = $this->owner->getPrimaryKey();
+			$newModel->{$this->multiAttachModelTreempIdField} = $entry;
+			$newModel->save();
 		}
 
-		$deleteDiff = array_diff($storeRecordSet, $newRecordSet);
+		$deleteDiff = array_diff($this->storeRecordSet, $newRecordSet);
 		$deleteModels = $this->findModelSet($deleteDiff);
 		foreach ($deleteModels as $entry) {
 			$entry->delete();
