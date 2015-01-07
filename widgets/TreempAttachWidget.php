@@ -13,6 +13,9 @@
  * Widget generate select with tree level space indention
  * It using TreempActiveRecordBehavior for data source
  * 
+ * If you want to make multiple attachment, you can use the widget
+ * TreempMultiattachWidget
+ * 
  * <pre>
  * <? $this->widget('treemp.widgets.TreempAttachWidget', array(
  *     'model' => $model,

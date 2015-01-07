@@ -1,45 +1,81 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * TreempMultiattachActiveRecordBehavior class file.
+ *
+ * @author		Krivtsov Artur (wartur) <gwartur@gmail.com> | Made in Russia
+ * @copyright	Krivtsov Artur © 2014
+ * @link		https://github.com/wartur/yii-treemp
+ * @license		New BSD license
  */
 
 /**
- * Description of TreempAttachGroupActiveRecordBehavior
- *
- * @author user
+ * Behavior, allows you to attach to the current model using a variety of other intermediate table.
+ * 
+ * To generate a tree using checkboxes take widget treemp.widgets.TreempMultiattachWidget
+ * 
+ * Using in CActiveRecord
+ * <pre>
+ * // add public variable
+ * public $newAttachIds = array();
+ * 
+ * // add behavior indicating a variable that has been added above
+ * public function behaviors() {
+ * 	return array_merge(parent::behaviors(), array(
+ * 		'TreempMultiattachActiveRecordBehavior' => array(
+ * 			'class' => 'treemp.behaviors.TreempMultiattachActiveRecordBehavior',
+ * 			'multiAttachModelName' => 'Attachtest',
+ * 			'multiAttachModelTargetIdField' => 'many_attach_model_id',
+ * 			'multiAttachModelTreempIdField' => 'treetest_id',
+ * 			'attachField' => 'newAttachIds'
+ * 		)
+ * 	));
+ * }
+ * 
+ * // add to validators
+ * public function rules() {
+ *	return array(
+ *		// ...
+ *		array('newAttachIds', 'type', 'type' => 'array'),
+ *		// ...
+ *	);
+ * }
+ * </pre>
+ * 
+ * Описание настройки:
+ * multiAttachModelName - indicates a class used to store many-to-many communication
+ * multiAttachModelTargetIdField - variables in the model {multiAttachModelName} pointing to the target model to which will be attached a list of other models
+ * multiAttachModelTreempIdField - variables in the model {multiAttachModelName} indicating the model you want to attach to the target model
  */
 class TreempMultiattachActiveRecordBehavior extends CActiveRecordBehavior {
 
 	/**
-	 * @var string имя модели для связи связи много ко многим
-	 * Пример модели и базы данных смотрите в директории treemp.example
+	 * @var string name of the model for communication connection many-to-many
+	 * Example models and databases, see the directory treemp.example
 	 */
 	public $multiAttachModelName = null;
 
 	/**
-	 * @var string имя поля модели для связи связи много ко многим.
-	 * Указывает поле целевой модели
-	 * Пример модели и базы данных смотрите в директории treemp.example
+	 * @var string name field model for a lot of communication due to many.
+	 * Specifies the field of the target model
+	 * Example models and databases, see the directory treemp.example
 	 */
 	public $multiAttachModelTargetIdField = null;
 
 	/**
-	 * @var string имя поля модели для связи связи много ко многим.
-	 * Указывает на поле модели дерева
-	 * Пример модели и базы данных смотрите в директории treemp.example
+	 * @var string name field model for a lot of communication due to many.
+	 * Indicates a field tree model
+	 * Example models and databases, see the directory treemp.example
 	 */
 	public $multiAttachModelTreempIdField = null;
 
 	/**
-	 * @var string поле модели для сохранения
+	 * @var string field model for conservation
 	 */
 	public $attachField = 'newAttachIds';
 	
 	/**
-	 * @var array список идентификаторов находящиеся на начало работы в бд
+	 * @var array a list of identifiers are at the beginning of the work in the database
 	 */
 	private $storeRecordSet;
 
@@ -54,7 +90,7 @@ class TreempMultiattachActiveRecordBehavior extends CActiveRecordBehavior {
 	private function findModelSet($recordSet) {
 		$multiAttachModelName = $this->multiAttachModelName;
 
-		// если так, то не будем грузить базу данных
+		// if so, we will not ship the database
 		if(empty($recordSet)) {
 			return array();
 		} else {
@@ -82,7 +118,7 @@ class TreempMultiattachActiveRecordBehavior extends CActiveRecordBehavior {
 		
 		$multiAttachModelName = $this->multiAttachModelName;
 		
-		// получить исходный список. Записать в публичную переменную модели и в приватную переменную поведения
+		// get the source list. Written in a public member variable in the model and the behavior of private variable
 		$this->owner->{$this->attachField} = $this->storeRecordSet = Yii::app()->db->createCommand()
 				->select($this->multiAttachModelTreempIdField)
 				->from($multiAttachModelName::model()->tableName())
@@ -102,6 +138,7 @@ class TreempMultiattachActiveRecordBehavior extends CActiveRecordBehavior {
 		$multiAttachModelName = $this->multiAttachModelName;
 		$newRecordSet = $this->owner->{$this->attachField};
 
+		// add new checked
 		$newDiff = array_diff($newRecordSet, $this->storeRecordSet);
 		foreach ($newDiff as $entry) {
 			$newModel = new $multiAttachModelName();
@@ -110,6 +147,7 @@ class TreempMultiattachActiveRecordBehavior extends CActiveRecordBehavior {
 			$newModel->save();
 		}
 
+		// delete unchecked
 		$deleteDiff = array_diff($this->storeRecordSet, $newRecordSet);
 		$deleteModels = $this->findModelSet($deleteDiff);
 		foreach ($deleteModels as $entry) {

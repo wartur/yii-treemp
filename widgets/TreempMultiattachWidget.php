@@ -11,8 +11,13 @@
 
 /**
  * Widget generate select with tree level space indention
- * It using TreempActiveRecordBehavior for data source
+ * It using TreempActiveRecordBehavior for data source and
+ * TreempMultiattachActiveRecordBehavior for attach functionality
  * 
+ * If you want to make Single attach, you can use the widget
+ * TreempAttachWidget
+ * 
+ * Ising in view
  * <pre>
  * <? $this->widget('treemp.widgets.TreempMultiattachWidget', array(
  *     'model' => $model,
@@ -31,30 +36,29 @@ class TreempMultiattachWidget extends CInputWidget {
 	public $treempModel = null;
 
 	/**
-	 * @var int количество пикселов отступа для каждлого уровня дерева.
-	 * Является простым оформлением стилей.
-	 * Вы можете отключить данный функционал указав 0 в качестве значения.
-	 * После, вы можете использовать вложенные div для управления стилем контрола.
-	 * Вложенные div имеют класс, который управляется через $divTabClass
+	 * @var int the number of pixels to indent each level of the tree.
+	 * Is a simple design styles.
+	 * You can disable this functionality by specifying 0 as the value.
+	 * After that, you can use nested div management control styles.
+	 * Nested div have a class that is controlled by $ divTabClass
 	 */
 	public $tabPadding = 15;
 
 	/**
-	 * @var string имя класса вложенного div
+	 * @var string the class name of the nested div
 	 */
 	public $divTabClass = 'tablevel';
 
 	/**
-	 * @var string имя класса div обрамляющего каждый чекбокс c лейблом
+	 * @var string div class name decorates every checkbox with the label
 	 */
 	public $checkDivClass = 'checkdiv';
 
 	/**
-	 * @var boolean при выделении корневой ветки, дизайблить и анчекать потомков,
-	 * это обеспечет более оптимиальное сохранение в базе данных. Если false,
-	 * контролирующий JS код будет отключен
+	 * @var boolean the allocation of root branches, disable and uncheck descendants, it will provide a more optimal preservation in the database.
+	 * If false, controlling JS code is disabled
 	 */
-	public $disableSubnodes = true;
+	public $jsAutodisable = true;
 
 	/**
 	 * @var boolean using ram cache mechanism in TreempActiveRecordBehavior
@@ -66,6 +70,8 @@ class TreempMultiattachWidget extends CInputWidget {
 	}
 
 	public function run() {
+		list($name, $id) = $this->resolveNameID();
+
 		$treempModelName = $this->treempModel;
 		$treempModel = $treempModelName::model();
 
@@ -76,18 +82,46 @@ class TreempMultiattachWidget extends CInputWidget {
 
 		$data = $treempModel->treempGetRootline();
 
-		// в нашем алгоритме сепаратор не поддерживается
+		// in our algorithm is not supported separator. Instead, the division of a block-level div
 		$this->htmlOptions['separator'] = '';
 
-		// изменим функциональность чекбокса Yii по умолчанию
+		// change the functionality of the default checkbox Yii
 		$this->htmlOptions['container'] = isset($this->htmlOptions['container']) ? $this->htmlOptions['container'] : 'div';
+
+		if ($this->jsAutodisable) {
+			$baseId = CHtml::getIdByName($name);
+
+			$js = <<<EOD
+jQuery('#$baseId input').change(function(e){
+	var self = jQuery(this),
+		inputSublevels = self.parent().next('.{$this->divTabClass}').find('input');
+	
+	if(self.attr('disabled')) {
+		return false;
+	}
+	
+	if(self.prop('checked')) {
+		inputSublevels.removeAttr('checked');
+		inputSublevels.attr('disabled','disabled');
+	} else {
+		inputSublevels.removeAttr('disabled');
+	}
+});
+
+jQuery('#$baseId input').change();
+EOD;
+
+			$cs = Yii::app()->getClientScript();
+			$cs->registerCoreScript('jquery');
+			$cs->registerScript($id, $js);
+		}
 
 		echo $this->activeCheckBoxList($this->model, $this->attribute, $data, $this->htmlOptions);
 	}
 
 	/**
-	 * Код взят из Yii 1.1.16 с небольшими адаптациями и дополнениями.
-	 * Далее приводится документация Yii...
+	 * Code is from Yii 1.1.16 with small adaptations and additions.
+	 * The following is a documentation Yii...
 	 * 
 	 * Generates a check box list for a model attribute.
 	 * The model attribute value is used as the selection.
@@ -150,8 +184,8 @@ class TreempMultiattachWidget extends CInputWidget {
 	}
 
 	/**
-	 * Код взят из Yii 1.1.16 с небольшими адаптациями и дополнениями.
-	 * Далее приводится документация Yii...
+	 * Code is from Yii 1.1.16 with small adaptations and additions.
+	 * The following is a documentation Yii...
 	 * 
 	 * Generates a check box list.
 	 * A check box list allows multiple selection, like {@link listBox}.
@@ -268,13 +302,14 @@ EOD;
 	private function recursiveGenerateOpgrouptedCheckbox($data, $level, $select, $checkAll, $baseID, $id, $name, $htmlOptions, $labelOptions, $template) {
 		$items = array();
 
-		// если есть простой отступ, добавим его
+		// if there is a simple indentation, add it
 		if ($this->tabPadding > 0) {
 			$currentTabPadding = $level * $this->tabPadding;
 			$htmlOptions['style'] = "margin-left: {$currentTabPadding}px";
 		}
 
-		// сгенерируем уровень.
+		// generate a level.
+		$items[] = CHtml::openTag('div', array('class' => $this->divTabClass));
 		foreach ($data as $entry) {
 			/* @var $entry TreempActiveRecordBehavior */
 			$value = $entry->getPrimaryKey();
@@ -289,7 +324,7 @@ EOD;
 			$label = CHtml::label($labelTitle, $htmlOptions['id'], $labelOptions);
 			$endLabel = CHtml::closeTag('label');
 
-			// обрамляем каждый чекбокс тегами div
+			// decorates every checkbox div tags
 			$items[] = CHtml::openTag('div', array('class' => $this->checkDivClass));
 			$items[] = strtr($template, array(
 				'{input}' => $option,
@@ -300,14 +335,13 @@ EOD;
 			));
 			$items[] = CHtml::closeTag('div');
 
-			// если есть потомки, то сгенерируем подуровень
+			// if there are descendants, then generate a sublavel
 			if ($entry->treempGetChildExists($this->useCacheInternal)) {
-				$items[] = CHtml::openTag('div', array('class' => $this->divTabClass));
 				list($recursiveItems, $checkAll, $id) = $this->recursiveGenerateOpgrouptedCheckbox($entry->treempGetChildren(), $level + 1, $select, $checkAll, $baseID, $id, $name, $htmlOptions, $labelOptions, $template);
 				$items = array_merge($items, $recursiveItems);
-				$items[] = CHtml::closeTag('div');
 			}
 		}
+		$items[] = CHtml::closeTag('div');
 
 		return array($items, $checkAll, $id);
 	}
