@@ -80,7 +80,7 @@ $newNode->treempAppendTo($currentNode);
 	'attribute' => 'parent_id',
 )) ?>
 ```
-У виджета так же имеются дополнительные настройки. Так, вы можете убрать из отображение ветку к которой привязана текущая нода. Это исключит возможность сделать петлю или цикл. По умолчанию ветка к которой привязана редактируемая нода скрывается, если по какой-то причине её требуется показать, то используйте настройку $deleteHimself = false, учтите в этом случае может возникать ошибка нахождения циклов в дереве. Для настройки отступа используйте переменную $spaceMultiplier.
+У виджета имеются дополнительные настройки. Вы можете убрать из отображения ветку к которой привязана текущая нода. Это исключит возможность сделать петлю или цикл. По умолчанию ветка к которой привязана редактируемая вершина дерева скрывается, если по какой-то причине её требуется показать, то используйте настройку $deleteHimself = false. Учтите в этом случае при сохранении может возникать ошибка нахождения циклов в дереве. Для настройки отступа используйте переменную $spaceMultiplier.
 ```php
 <? $this->widget('treemp.widgets.TreempDropdownWidget', array(
 	'model' => $model,
@@ -91,12 +91,59 @@ $newNode->treempAppendTo($currentNode);
 )) ?>
 ```
 
-2) Виджет и поведение для присоеденинения дерева к конкретной модели
-============== TODO ==============
+2) Виджет для связывания дерева с конкретной моделью
+```php
+<? $this->widget('treemp.widgets.TreempAttachWidget', array(
+	'model' => $model,
+	'attribute' => 'treetest_id',
+	'treempModel' => 'Treetest',
+)) ?>
+```
+Этот виджет ничем не отличается от TreempDropdownWidget за исключением того, что требуется указать имя модели дерева в переменной $treempModel. В данном виджете отсутствует $deleteHimself, так как присоединение ведется к внешней моделе а не между ветками дерева.
 
-3) Виджет и поведение для присоединения нескольких веток дерева к конкретной модели через промежуточную таблицу
-	- не забыть сделать дополнительный параметр (обновить все записи, даже которые небыли изменены)
-============== TODO ==============
+3) Виджет и поведение для связывания нескольких веток дерева к конкретной моделью через промежуточную таблицу
 
-4) Виджет хлебных крошек
-============== TODO ==============
+В моделе к которой нужно делать присоединения требуется добавить
+```php
+// add public variable
+public $newAttachIds = array();
+
+// add behavior indicating a variable that has been added above
+public function behaviors() {
+	return array_merge(parent::behaviors(), array(
+		'TreempMultiattachActiveRecordBehavior' => array(
+			'class' => 'treemp.behaviors.TreempMultiattachActiveRecordBehavior',
+			'multiAttachModelName' => 'Attachtest',
+			'multiAttachModelTargetIdField' => 'many_attach_model_id',
+			'multiAttachModelTreempIdField' => 'treetest_id',
+			'attachField' => 'newAttachIds'
+		)
+	));
+}
+
+// add to validators
+public function rules() {
+	return array(
+		// ...
+		array('newAttachIds', 'type', 'type' => 'array'),
+		// ...
+	);
+}
+```
+- multiAttachModelName - указывает на класс модели, в которой хранятся связи многие-ко-многим
+- multiAttachModelTargetIdField - переменные в модели {multiAttachModelName}, указывая на целевую модель, в которой будет прикреплен список других моделей
+- multiAttachModelTreempIdField - переменные в модели {multiAttachModelName}, указывающие модель, которую вы хотите прикрепить к целевой модели. В нашем случае ветки дерева
+
+В переменной модели $newAttachIds поведением будут загружен текущий список привязанных моделей, после сохранения модели поведение будет сохранять привязки которые были изненены
+
+В отображении надо добавить следующий виджет, который создает список чекбоксов с дополнительной стилизацией под дерево.
+```php
+<? $this->widget('treemp.widgets.TreempMultiattachWidget', array(
+	'model' => $model,
+	'attribute' => 'newAttachIds',
+	'treempModel' => 'Treetest',
+)) ?>
+```
+Виджет TreempMultiattachWidget имеет дополнительные возможности по настройке. Читайте API reference.
+
+Удачной работы!
