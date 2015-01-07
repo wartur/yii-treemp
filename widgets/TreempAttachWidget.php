@@ -19,8 +19,8 @@
  * <pre>
  * <? $this->widget('treemp.widgets.TreempAttachWidget', array(
  *     'model' => $model,
- *     'attribute' => 'parent_id',
- *     'deleteHimself' => true,
+ *     'attribute' => 'treetest_id',
+ *     'treempModel' => 'Treetest',
  *     'spaceMultiplier' => 2,
  *     'emptyText' => '(Select parent)'
  * )) ?>

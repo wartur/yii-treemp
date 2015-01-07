@@ -34,11 +34,11 @@
  * 
  * // add to validators
  * public function rules() {
- *	return array(
- *		// ...
- *		array('newAttachIds', 'type', 'type' => 'array'),
- *		// ...
- *	);
+ * 	return array(
+ * 		// ...
+ * 		array('newAttachIds', 'type', 'type' => 'array'),
+ * 		// ...
+ * 	);
  * }
  * </pre>
  * 
