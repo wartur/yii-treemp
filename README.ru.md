@@ -69,7 +69,7 @@ $newNode = new Treetest();
 $newNode->name = 'newName1';
 $newNode->treempAppendTo($currentNode);
 
-// что бы получить путь от корня до текущей вершины
+// что бы получить путь от корня до текущей вершины. Этот функционнал можно использовать в breadcrumb
 $someNode = Treetest::model()->findByPk(100500);
 $pathModels = $someNode->treempGetPathModels();		// path => 1:10:100:100500
 $resultArray = array();
