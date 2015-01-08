@@ -6,7 +6,7 @@ YII-TREEMP ([English version](https://github.com/wartur/yii-treemp/blob/master/R
 
 ДЕМО: http://yii-treemp.wartur.ru
 
-## Релиз 2.0.0 для Yii второй и последний. Дальнейшая разработка [будет проводиться на Yii2](https://github.com/wartur/yii2-treemp)
+## Релиз 2.0.1 для Yii второй и последний. Дальнейшая разработка [будет проводиться на Yii2](https://github.com/wartur/yii2-treemp)
 
 ###### От автора
 > Данное расширение создавалось для фана и для удовлетворения своего

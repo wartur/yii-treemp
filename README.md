@@ -6,7 +6,7 @@ When using this extension do not forget to use table locks or transactions.
 
 DEMO: http://yii-treemp.wartur.ru
 
-## Release 2.0.0 for Yii second and last. Further development [to be carried out on Yii2](https://github.com/wartur/yii2-treemp)
+## Release 2.0.1 for Yii second and last. Further development [to be carried out on Yii2](https://github.com/wartur/yii2-treemp)
 
 ###### From the author
 > This extension was created for fun and to meet their vile,
