@@ -76,6 +76,13 @@ $newNode = new Treetest();
 $newNode->name = 'newName1';
 $newNode->treempAppendTo($currentNode);
 
+// материализованный путь перестроится автоматически, если вы смените parent_id
+$currentNode = Treetest::model()->findByPk(1);
+$newNode = new Treetest();
+$newNode->name = 'newName1';
+$newNode->parent_id = $currentNode->id;
+$newNode->save();
+
 // получить произвольную вершину по идентификатору. Эта вешина будет закеширована
 $node = Treetest::model()
 $rootLine = $node->treempGetNodeByPk(100500);
