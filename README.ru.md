@@ -232,6 +232,6 @@ public function rules() {
 	'treempModel' => 'Treetest',
 )) ?>
 ```
-Виджет TreempMultiattachWidget имеет дополнительные возможности по настройке. Читайте API reference.
+Виджет TreempMultiattachWidget имеет дополнительные возможности по настройке. Читайте [API reference](https://github.com/wartur/yii-treemp/blob/master/widgets/TreempMultiattachWidget.php).
 
 Удачной работы!
