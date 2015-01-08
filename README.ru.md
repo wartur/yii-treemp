@@ -55,6 +55,12 @@ public function behaviors() {
 Помните для работы поведения требуется поле VARCHAR(255) path с УНИКАЛЬНЫМ ключом. Подробнее
 вы можете прочитать в [API reference поведения](https://github.com/wartur/yii-treemp/blob/master/behaviors/TreempActiveRecordBehavior.php). MySQL не поддерживает индексацию текстового поля более 255 символов.
 
+6) Если вы уже имеете структуре дерева, основанную на parent_id. Прозведите перестройку материализованного пути, вызвав метод API treempRebuildAllPath
+```php
+$treeModel = Treetest::model();
+$treeModel->treempRebuildAllPath();
+```
+
 Поведение работы с деревьями имеет простое программное API
 ```php
 // для привязки вершины к текущей вершине
@@ -68,6 +74,41 @@ $currentNode = Treetest::model()->findByPk(1);
 $newNode = new Treetest();
 $newNode->name = 'newName1';
 $newNode->treempAppendTo($currentNode);
+
+// получить произвольную вершину по идентификатору. Эта вешина будет закеширована
+$node = Treetest::model()
+$rootLine = $node->treempGetNodeByPk(100500);
+$rootLine2 = $node->treempGetNodeByPk(100500);
+// $rootLine == $rootLine2
+
+// получить список корневых вершин
+$node = Treetest::model()
+$rootLine = $node->treempGetRootline();
+
+// получить список наследников
+$currentNode = Treetest::model()->findByPk(666);
+$childrenNodes = $currentNode->treempGetChildren();
+
+// получить родителя текущего узла
+$currentNode = Treetest::model()->findByPk(666);
+$parentNode = $currentNode->treempGetParent();
+
+// загрузить все дерево в оперативный кеш
+$currentNode = Treetest::model();
+$currentNode->treempLoadAllTreeCache();
+$node100500 = $currentNode->treempGetNodeByPk(100500);	// попадание в кеш
+$node100501 = $currentNode->treempGetNodeByPk(100501);	// попадание в кеш
+$node666 = $currentNode->treempGetNodeByPk(666);	// попадание в кеш
+
+// загрузить ветку дерева в оперативный кеш... В БД есть ветки 1:10:100:100500, 1:10:100:100501, 666
+$currentNode = Treetest::model()->findByPk(1);
+$currentNode->treempLoadBranchCache();
+$node100500 = $currentNode->treempGetNodeByPk(100500);	// попадание в кеш
+$node100501 = $currentNode->treempGetNodeByPk(100501);	// попадание в кеш
+$node666 = $currentNode->treempGetNodeByPk(666);	// промах кеша
+
+// отчистить оперативный кеш
+$currentNode->treempCleanoutCache();
 
 // что бы получить путь от корня до текущей вершины. Этот функционнал можно использовать в breadcrumb
 $someNode = Treetest::model()->findByPk(100500);
@@ -98,6 +139,10 @@ return implode("\n ", $result);
 // name1 :: name10 :: name100 :: name100500
 // name1 :: name10 :: name100 :: name100501
 // Во второй строке вершины name1, name10, name100 были взяты из кеша
+
+// получить корень текущей ветки
+$currentNode = Treetest::model()->findByPk(100500);
+$rootNode = $currentNode->treempGetRootParent();
 
 ```
 
