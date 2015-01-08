@@ -77,7 +77,7 @@ class TreempMultiattachActiveRecordBehavior extends CActiveRecordBehavior {
 	/**
 	 * @var array a list of identifiers are at the beginning of the work in the database
 	 */
-	private $storeRecordSet;
+	private $storeRecordSet = array();
 
 	/**
 	 * Getting the name of the primary key
@@ -161,6 +161,8 @@ class TreempMultiattachActiveRecordBehavior extends CActiveRecordBehavior {
 	 */
 	public function afterConstruct($event) {
 		parent::afterConstruct($event);
+		
+		$this->owner->{$this->attachField} = array();
 
 		// Only in debug mode. On production is a waste of electricity
 		if (YII_DEBUG) {
