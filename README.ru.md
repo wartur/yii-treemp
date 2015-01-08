@@ -57,17 +57,48 @@ public function behaviors() {
 
 Поведение работы с деревьями имеет простое программное API
 ```php
-// для привязки ноды к текущей модели
+// для привязки вершины к текущей вершине
 $currentNode = Treetest::model()->findByPk(1);
 $newNode = new Treetest();
 $newNode->name = 'newName1';
 $currentNode->treempAppendChild($newNode);
 
-// для привязки текущей ноды к дереву (результат будет тот же)
+// для привязки текущей вершины к другой вершине (результат будет тот же)
 $currentNode = Treetest::model()->findByPk(1);
 $newNode = new Treetest();
 $newNode->name = 'newName1';
 $newNode->treempAppendTo($currentNode);
+
+// что бы получить путь от корня до текущей вершины
+$someNode = Treetest::model()->findByPk(100500);
+$pathModels = $someNode->treempGetPathModels();		// path => 1:10:100:100500
+$resultArray = array();
+foreach ($pathModels as $entry) {
+	$resultArray[] = $entry->name;
+}
+echo implode(' :: ', $resultArray);
+// name1 :: name10 :: name100 :: name100500
+
+// Вы можете это производить и в цикле, все обращения к БД кешируются.
+// TargetModel - это модель к котоой привязаны несколько веток дерева через таблицу много-ко-многим
+$targetModel = TargetModel::model()->findByPk(666);
+$result = array();
+foreach ($targetModel->treetests as $entry) {
+	$pathModels = $entry->treempGetPathModels();
+	$resultArray = array();
+	
+	// because caching provides a sufficiently high speed such design
+	foreach ($pathModels as $pathEntry) {
+		$resultArray[] = $pathEntry->name;
+	}
+	
+	$result[] = implode(' :: ', $resultArray);
+}
+return implode("\n ", $result);
+// name1 :: name10 :: name100 :: name100500
+// name1 :: name10 :: name100 :: name100501
+// Во второй строке вершины name1, name10, name100 были взяты из кеша
+
 ```
 
 Работа с готовыми виджетами
