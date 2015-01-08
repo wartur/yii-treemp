@@ -1,14 +1,14 @@
 YII-TREEMP ([Русская версия](https://github.com/wartur/yii-treemp/blob/master/README.ru.md))
 ============================================================================================
 
-Extension for Yii for working with wood using an algorithm materialized path.
+Extension for Yii for working with tree structure using an algorithm materialized path.
 When using this extension do not forget to use table locks or transactions.
 
-ДЕМО: http://yii-treemp.wartur.ru
+DEMO: http://yii-treemp.wartur.ru
 
-## Release 2.0.0 for Yii second and last. Further developmentа [to be carried out on Yii2](https://github.com/wartur/yii2-treemp)
+## Release 2.0.0 for Yii second and last. Further development [to be carried out on Yii2](https://github.com/wartur/yii2-treemp)
 
-###### От автора
+###### From the author
 > This extension was created for fun and to meet their vile,
 > vulgar and useless in practice, perfectionism.
 
@@ -16,7 +16,7 @@ When using this extension do not forget to use table locks or transactions.
 
 Abstract
 --------
-Extension for working with wood in a relational database.
+Extension for working with tree structure in a relational database.
 Algorithm materialized path.
 The algorithm speeds up the tree in such operations as sampling branches, tree building or part of the tree.
 Due to the algorithm materialized path accelerated insertion rate in an arbitrary position in the table.
@@ -31,7 +31,7 @@ the table does not support transactions in the component
 you want to specify that you want to use a table lock.
 
 Connecting to the expansion project
---------------------------------
+-----------------------------------
 1) [Download the latest release](https://github.com/wartur/yii-treemp/releases)
 
 2) Unpack yii-treemp in the directory ext.wartur.yii-treemp
@@ -41,7 +41,7 @@ Connecting to the expansion project
 Yii::setPathOfAlias('treemp', 'protected/extensions/wartur/yii-treemp');
 ```
 
-4) Add behavior to a model in which support is required to work with wood.
+4) Add behavior to a model in which support is required to work with tree structure.
 Minimum configuration:
 ```php
 public function behaviors() {
@@ -53,11 +53,11 @@ public function behaviors() {
 }
 ```
 
-5) Check that your model satisfies the formula given in the
+5) Check that your model satisfies the schema given in the
 [treemp.tests.env.schema](https://github.com/wartur/yii-treemp/blob/master/tests/env/schema/treetest.sql).
 Remember to work the behavior required field VARCHAR (255) path with a unique key. More you can read in
 [API reference поведения](https://github.com/wartur/yii-treemp/blob/master/behaviors/TreempActiveRecordBehavior.php).
-MySQL does not support indexing the text field to 255 characters.
+MySQL does not support indexing the text field more then 255 characters.
 
 6) If you already have a tree structure based on the parent_id.
 Make restructuring materialized path by calling the API treempRebuildAllPath
@@ -66,8 +66,8 @@ $treeModel = Treetest::model();
 $treeModel->treempRebuildAllPath();
 ```
 
-Behavior with trees is a simple software API
-----------------------------------------------------------
+Software API
+------------
 ```php
 // attach some node to the current node
 $currentNode = Treetest::model()->findByPk(1);
@@ -109,17 +109,17 @@ $parentNode = $currentNode->treempGetParent();
 // load all tree in an operational cache
 $currentNode = Treetest::model();
 $currentNode->treempLoadAllTreeCache();
-$node100500 = $currentNode->treempGetNodeByPk(100500);	// попадание в кеш
-$node100501 = $currentNode->treempGetNodeByPk(100501);	// попадание в кеш
-$node666 = $currentNode->treempGetNodeByPk(666);	// попадание в кеш
+$node100500 = $currentNode->treempGetNodeByPk(100500);	// cache hit
+$node100501 = $currentNode->treempGetNodeByPk(100501);	// cache hit
+$node666 = $currentNode->treempGetNodeByPk(666);	// cache hit
 
 // load a tree branch in an operational cache
 // In the database there are threads 1:10:100:100500, 1:10:100:100501, 666
 $currentNode = Treetest::model()->findByPk(1);
 $currentNode->treempLoadBranchCache();
-$node100500 = $currentNode->treempGetNodeByPk(100500);	// попадание в кеш
-$node100501 = $currentNode->treempGetNodeByPk(100501);	// попадание в кеш
-$node666 = $currentNode->treempGetNodeByPk(666);	// промах кеша
+$node100500 = $currentNode->treempGetNodeByPk(100500);	// cache hit
+$node100501 = $currentNode->treempGetNodeByPk(100501);	// cache hit
+$node666 = $currentNode->treempGetNodeByPk(666);	// cache miss
 
 // clear the cache-line
 $currentNode->treempCleanoutCache();
@@ -152,7 +152,7 @@ foreach ($targetModel->treetests as $entry) {
 return implode("\n ", $result);
 // name1 :: name10 :: name100 :: name100500
 // name1 :: name10 :: name100 :: name100501
-// In the second top row name1, name10, name100 были взяты из кеша
+// In the second row name1, name10, name100 was take from cache
 
 // get the root of the current branch
 $currentNode = Treetest::model()->findByPk(100500);
@@ -161,7 +161,7 @@ $rootNode = $currentNode->treempGetRootParent();
 ```
 
 Working with Widget Ready
----------------------------
+-------------------------
 To expand the available basic set of widgets.
 Using the current API, you can write your widget will do the rest for you behavior.
 
@@ -192,7 +192,7 @@ To adjust the spacing of the variable $spaceMultiplier.
 )) ?>
 ```
 
-2) Widget to bind the tree tops with a specific model
+2) Widget to bind the tree node with a specific model
 ```php
 <? $this->widget('treemp.widgets.TreempAttachWidget', array(
 	'model' => $model,
@@ -200,7 +200,7 @@ To adjust the spacing of the variable $spaceMultiplier.
 	'treempModel' => 'Treetest',
 )) ?>
 ```
-This widget is no different from TreempDropdownWidget except that you must specify
+This widget is equal TreempDropdownWidget except that you must specify
 the name of the tree model in the variable $treempModel.
 This widget is missing $deleteHimself, since the addition is carried out to the external model,
 and not between the tree branches.
@@ -241,7 +241,7 @@ public function rules() {
 In the model, the variable $newAttachIds behavior will be loaded with the current list of linked models,
 after saving the model behavior will remain binding that have been changed
 
-In the mapping must be added the following widget that creates a list of checkboxes with more stylized tree.
+In the view must be added the following widget that creates a list of checkboxes with more stylized tree.
 ```php
 <? $this->widget('treemp.widgets.TreempMultiattachWidget', array(
 	'model' => $model,
@@ -249,6 +249,6 @@ In the mapping must be added the following widget that creates a list of checkbo
 	'treempModel' => 'Treetest',
 )) ?>
 ```
-Widget TreempMultiattachWidget has additional customization capabilities. Read the API reference.
+Widget TreempMultiattachWidget has additional customization capabilities. Read the [API reference](https://github.com/wartur/yii-treemp/blob/master/widgets/TreempMultiattachWidget.php).
 
 Good work!
