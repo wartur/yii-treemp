@@ -1,46 +1,48 @@
 YII-TREEMP ([Русская версия](https://github.com/wartur/yii-treemp/blob/master/README.ru.md))
 ============================================================================================
 
-Расширение для Yii для работы c деревом с помощью алгоритма материализованного пути.
-При использовании данного расширения не забывайте пользоваться транзакциями или блокировками таблиц.
+Extension for Yii for working with wood using an algorithm materialized path.
+When using this extension do not forget to use table locks or transactions.
 
 ДЕМО: http://yii-treemp.wartur.ru
 
-## Релиз 2.0.0 для Yii второй и последний. Дальнейшая разработка [будет проводиться на Yii2](https://github.com/wartur/yii2-treemp)
+## Release 2.0.0 for Yii second and last. Further developmentа [to be carried out on Yii2](https://github.com/wartur/yii2-treemp)
 
 ###### От автора
-> Данное расширение создавалось для фана и для удовлетворения своего
-> низменного, пошлого и никому не нужного в практике перфекционизма.
+> This extension was created for fun and to meet their vile,
+> vulgar and useless in practice, perfectionism.
 
-Абстракт
+(Sorry for my english. I'm using google translate)
+
+Abstract
 --------
-Расширение для работы с деревом в реляционной базе данных.
-Алгоритм материализованного пути. Алгоритм ускоряет работу с деревом на таких
-операциях как выборка ветки, построение дерева или части дерева.
-Благодаря алгоритму материализованного пути ускоряется скорость вставки
-в произвольное место таблицы. Для дополнительной сортировки веток
-на каждом из уровне требуется использовать дополнительный алгоритм.
-В качестве примера берите https://github.com/wartur/yii-sorter
+Extension for working with wood in a relational database.
+Algorithm materialized path.
+The algorithm speeds up the tree in such operations as sampling branches, tree building or part of the tree.
+Due to the algorithm materialized path accelerated insertion rate in an arbitrary position in the table.
+For additional sorting branches at each level of the need to use an additional algorithm.
+As an example, take https://github.com/wartur/yii-sorter
 
-ВАЖНО: все операции с использованием данного расширения ДОЛЖНЫ производиться через
-транзакции(ISOLATION LEVEL SERIALIZABLE)/блокировки. В противном случае
-есть вероятность разрушения базы данных.
-Все действия данного расширения включают в себя транзакции, в случаях когда таблица
-не поддерживает транзакции требуется пользоваться блокировкой таблицы
+IMPORTANT: all operations using this extension shall be made through
+the transaction (ISOLATION LEVEL SERIALIZABLE) / lock.
+Otherwise, there is a possibility of destruction of the database.
+All actions of this expansion include transactions in cases when
+the table does not support transactions in the component
+you want to specify that you want to use a table lock.
 
-Подключение расширения к проекту
+Connecting to the expansion project
 --------------------------------
-1) [Скачайте новейший релиз](https://github.com/wartur/yii-treemp/releases)
+1) [Download the latest release](https://github.com/wartur/yii-treemp/releases)
 
-2) Распакуйте yii-treemp в директории ext.wartur.yii-treemp
+2) Unpack yii-treemp in the directory ext.wartur.yii-treemp
 
-3) Добавьте новый алиас пути в начало конфигурационного файла (по умолчанию: config/main.php)
+3) Add a new alias path to the top of the configuration file (default: config / main.php)
 ```php
 Yii::setPathOfAlias('treemp', 'protected/extensions/wartur/yii-treemp');
 ```
 
-4) Добавьте поведение в модель в которой требуется поддержка работы с деревьями.
-Минимальная конфигурация:
+4) Add behavior to a model in which support is required to work with wood.
+Minimum configuration:
 ```php
 public function behaviors() {
 	return array_merge(parent::behaviors(), array(
@@ -51,51 +53,146 @@ public function behaviors() {
 }
 ```
 
-5) Проверьте, что ваша модель удовлетворяет схеме, указанной в [treemp.tests.env.schema](https://github.com/wartur/yii-treemp/blob/master/tests/env/schema/treetest.sql).
-Помните для работы поведения требуется поле VARCHAR(255) path с УНИКАЛЬНЫМ ключом. Подробнее
-вы можете прочитать в [API reference поведения](https://github.com/wartur/yii-treemp/blob/master/behaviors/TreempActiveRecordBehavior.php). MySQL не поддерживает индексацию текстового поля более 255 символов.
+5) Check that your model satisfies the formula given in the
+[treemp.tests.env.schema](https://github.com/wartur/yii-treemp/blob/master/tests/env/schema/treetest.sql).
+Remember to work the behavior required field VARCHAR (255) path with a unique key. More you can read in
+[API reference поведения](https://github.com/wartur/yii-treemp/blob/master/behaviors/TreempActiveRecordBehavior.php).
+MySQL does not support indexing the text field to 255 characters.
 
-Поведение работы с деревьями имеет простое программное API
+6) If you already have a tree structure based on the parent_id.
+Make restructuring materialized path by calling the API treempRebuildAllPath
 ```php
-// для привязки ноды к текущей модели
+$treeModel = Treetest::model();
+$treeModel->treempRebuildAllPath();
+```
+
+Behavior with trees is a simple software API
+----------------------------------------------------------
+```php
+// attach some node to the current node
 $currentNode = Treetest::model()->findByPk(1);
 $newNode = new Treetest();
 $newNode->name = 'newName1';
 $currentNode->treempAppendChild($newNode);
 
-// для привязки текущей ноды к дереву (результат будет тот же)
+// attach current node to other node (the result will be equal)
 $currentNode = Treetest::model()->findByPk(1);
 $newNode = new Treetest();
 $newNode->name = 'newName1';
 $newNode->treempAppendTo($currentNode);
+
+// materialized path reconstructed automatically if you change the parent_id (the result will be equal)
+$currentNode = Treetest::model()->findByPk(1);
+$newNode = new Treetest();
+$newNode->name = 'newName1';
+$newNode->parent_id = $currentNode->id;
+$newNode->save();
+
+// obtain an arbitrary node on the identifier.
+$node = Treetest::model()
+$rootLine = $node->treempGetNodeByPk(100500);	// This node will be cached
+$rootLine2 = $node->treempGetNodeByPk(100500);
+// $rootLine == $rootLine2
+
+// get a list of the root node
+$node = Treetest::model()
+$rootLine = $node->treempGetRootline();
+
+// get the children of the current node
+$currentNode = Treetest::model()->findByPk(666);
+$childrenNodes = $currentNode->treempGetChildren();
+
+// get the parent of the current node
+$currentNode = Treetest::model()->findByPk(666);
+$parentNode = $currentNode->treempGetParent();
+
+// load all tree in an operational cache
+$currentNode = Treetest::model();
+$currentNode->treempLoadAllTreeCache();
+$node100500 = $currentNode->treempGetNodeByPk(100500);	// попадание в кеш
+$node100501 = $currentNode->treempGetNodeByPk(100501);	// попадание в кеш
+$node666 = $currentNode->treempGetNodeByPk(666);	// попадание в кеш
+
+// load a tree branch in an operational cache
+// In the database there are threads 1:10:100:100500, 1:10:100:100501, 666
+$currentNode = Treetest::model()->findByPk(1);
+$currentNode->treempLoadBranchCache();
+$node100500 = $currentNode->treempGetNodeByPk(100500);	// попадание в кеш
+$node100501 = $currentNode->treempGetNodeByPk(100501);	// попадание в кеш
+$node666 = $currentNode->treempGetNodeByPk(666);	// промах кеша
+
+// clear the cache-line
+$currentNode->treempCleanoutCache();
+
+// to get the path from the root to the current node. This functionality can be used in the breadcrumb
+$someNode = Treetest::model()->findByPk(100500);
+$pathModels = $someNode->treempGetPathModels();		// path => 1:10:100:100500
+$resultArray = array();
+foreach ($pathModels as $entry) {
+	$resultArray[] = $entry->name;
+}
+echo implode(' :: ', $resultArray);
+// name1 :: name10 :: name100 :: name100500
+
+// You can make it in a loop, all access to the database are cached.
+// TargetModel - this model is bound to several branches of the tree across the table many-to-many
+$targetModel = TargetModel::model()->findByPk(666);
+$result = array();
+foreach ($targetModel->treetests as $entry) {
+	$pathModels = $entry->treempGetPathModels();
+	$resultArray = array();
+	
+	// because caching provides a sufficiently high speed such design
+	foreach ($pathModels as $pathEntry) {
+		$resultArray[] = $pathEntry->name;
+	}
+	
+	$result[] = implode(' :: ', $resultArray);
+}
+return implode("\n ", $result);
+// name1 :: name10 :: name100 :: name100500
+// name1 :: name10 :: name100 :: name100501
+// In the second top row name1, name10, name100 были взяты из кеша
+
+// get the root of the current branch
+$currentNode = Treetest::model()->findByPk(100500);
+$rootNode = $currentNode->treempGetRootParent();
+
 ```
 
-Работа с готовыми виджетами
+Working with Widget Ready
 ---------------------------
-К расширению поставляется базовый набор виджетов.
-Используя текущее API, вы можете написать свой виджет, остальное за вас сделает поведение.
+To expand the available basic set of widgets.
+Using the current API, you can write your widget will do the rest for you behavior.
 
-1) Виджет для составления дерева
+1) Widget for drawing up a tree
 
-Для связывания вершин между собой можно воспользоваться виджетом генерации выпадающего списка со стилизацией под дерево. Для этого в отображении добавьте следующий код
+To bind together the vertices can use the drop-down list widget generation with stylized tree.
+To do this, add the following code mapping
 ```php
 <? $this->widget('treemp.widgets.TreempDropdownWidget', array(
 	'model' => $model,
 	'attribute' => 'parent_id',
 )) ?>
 ```
-У виджета имеются дополнительные настройки. Вы можете убрать из списка выбора ветку к которой привязана текущая вершина. Это исключит возможность сделать петлю или цикл. По умолчанию ветка к которой привязана редактируемая вершина дерева скрывается, если по какой-то причине её требуется показать, то используйте настройку $deleteHimself = false. Учтите в этом случае при сохранении может возникать ошибка нахождения циклов в дереве. Для настройки отступа используйте переменную $spaceMultiplier.
+In the widget, there are additional settings.
+You can remove the branch from the selection list is bound to the current vertex.
+This would eliminate the opportunity to loop or cycle.
+Default branch is bound to editable tree top hidden if for some reason you want to show it,
+use setting $deleteHimself = false.
+Note in this case, may occur during the preservation cycle error location in the tree.
+To adjust the spacing of the variable $spaceMultiplier.
 ```php
 <? $this->widget('treemp.widgets.TreempDropdownWidget', array(
 	'model' => $model,
 	'attribute' => 'parent_id',
-	'deleteHimself' => false, // покажем все ветки, даже те которые потенциально могут вызвать ошибку
-	'spaceMultiplier' => 1,   // уменьшим отступ
-	'emptyText' => '(My custom empty text)' // поменяем текст по умолчанию
+	'deleteHimself' => false, // Show all branches, even those that can potentially cause an error
+	'spaceMultiplier' => 1,   // decrease Indent
+	'emptyText' => '(My custom empty text)' // change the default text
 )) ?>
 ```
 
-2) Виджет для связывания вершины дерева с конкретной моделью
+2) Widget to bind the tree tops with a specific model
 ```php
 <? $this->widget('treemp.widgets.TreempAttachWidget', array(
 	'model' => $model,
@@ -103,11 +200,14 @@ $newNode->treempAppendTo($currentNode);
 	'treempModel' => 'Treetest',
 )) ?>
 ```
-Этот виджет ничем не отличается от TreempDropdownWidget за исключением того, что требуется указать имя модели дерева в переменной $treempModel. В данном виджете отсутствует $deleteHimself, так как присоединение ведется к внешней моделе, а не между ветками дерева.
+This widget is no different from TreempDropdownWidget except that you must specify
+the name of the tree model in the variable $treempModel.
+This widget is missing $deleteHimself, since the addition is carried out to the external model,
+and not between the tree branches.
 
-3) Виджет и поведение для связывания нескольких веток дерева к конкретной моделью через промежуточную таблицу
+3) Widget and behavior for the attach of several branches of the tree to a specific model via an intermediate table
 
-В моделе к которой нужно делать присоединения требуется добавить
+In the model to which you want to make attachment you want to add
 ```php
 // add public variable
 public $newAttachIds = array();
@@ -134,13 +234,14 @@ public function rules() {
 	);
 }
 ```
-- multiAttachModelName - указывает на класс модели, в которой хранятся связи многие-ко-многим
-- multiAttachModelTargetIdField - переменная в модели {multiAttachModelName}, указывая на целевую модель, в которой будет прикреплен список других моделей
-- multiAttachModelTreempIdField - переменная в модели {multiAttachModelName}, указывающие модель, которую вы хотите прикрепить к целевой модели. В нашем случае ветки дерева
+- multiAttachModelName - indicates the model class that stores a many-to-many
+- multiAttachModelTargetIdField - variable in the model {multiAttachModelName}, pointing to the target model, which will be attached a list of other models
+- multiAttachModelTreempIdField - variable in the model {multiAttachModelName}, indicating the model that you want to attach to the target model. In our case, the tree
 
-В переменной модели $newAttachIds поведением будут загружен текущий список привязанных моделей, после сохранения модели поведение будет сохранять привязки которые были изменены
+In the model, the variable $newAttachIds behavior will be loaded with the current list of linked models,
+after saving the model behavior will remain binding that have been changed
 
-В отображении надо добавить следующий виджет, который создает список чекбоксов с дополнительной стилизацией под дерево.
+In the mapping must be added the following widget that creates a list of checkboxes with more stylized tree.
 ```php
 <? $this->widget('treemp.widgets.TreempMultiattachWidget', array(
 	'model' => $model,
@@ -148,6 +249,6 @@ public function rules() {
 	'treempModel' => 'Treetest',
 )) ?>
 ```
-Виджет TreempMultiattachWidget имеет дополнительные возможности по настройке. Читайте API reference.
+Widget TreempMultiattachWidget has additional customization capabilities. Read the API reference.
 
-Удачной работы!
+Good work!
