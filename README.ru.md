@@ -83,7 +83,7 @@ $newNode->name = 'newName1';
 $newNode->parent_id = $currentNode->id;
 $newNode->save();
 
-// получить произвольную вершину по идентификатору. Эта вешина будет закеширована
+// получить произвольную вершину по идентификатору. Эта вешина будет закэширована
 $node = Treetest::model()
 $rootLine = $node->treempGetNodeByPk(100500);
 $rootLine2 = $node->treempGetNodeByPk(100500);
@@ -101,21 +101,21 @@ $childrenNodes = $currentNode->treempGetChildren();
 $currentNode = Treetest::model()->findByPk(666);
 $parentNode = $currentNode->treempGetParent();
 
-// загрузить все дерево в оперативный кеш
+// загрузить все дерево в оперативный кэш
 $currentNode = Treetest::model();
 $currentNode->treempLoadAllTreeCache();
-$node100500 = $currentNode->treempGetNodeByPk(100500);	// попадание в кеш
-$node100501 = $currentNode->treempGetNodeByPk(100501);	// попадание в кеш
-$node666 = $currentNode->treempGetNodeByPk(666);	// попадание в кеш
+$node100500 = $currentNode->treempGetNodeByPk(100500);	// попадание в кэш
+$node100501 = $currentNode->treempGetNodeByPk(100501);	// попадание в кэш
+$node666 = $currentNode->treempGetNodeByPk(666);	// попадание в кэш
 
-// загрузить ветку дерева в оперативный кеш... В БД есть ветки 1:10:100:100500, 1:10:100:100501, 666
+// загрузить ветку дерева в оперативный кэш... В БД есть ветки 1:10:100:100500, 1:10:100:100501, 666
 $currentNode = Treetest::model()->findByPk(1);
 $currentNode->treempLoadBranchCache();
-$node100500 = $currentNode->treempGetNodeByPk(100500);	// попадание в кеш
-$node100501 = $currentNode->treempGetNodeByPk(100501);	// попадание в кеш
-$node666 = $currentNode->treempGetNodeByPk(666);	// промах кеша
+$node100500 = $currentNode->treempGetNodeByPk(100500);	// попадание в кэш
+$node100501 = $currentNode->treempGetNodeByPk(100501);	// попадание в кэш
+$node666 = $currentNode->treempGetNodeByPk(666);	// промах кэша
 
-// отчистить оперативный кеш
+// отчистить оперативный кэш
 $currentNode->treempCleanoutCache();
 
 // что бы получить путь от корня до текущей вершины. Этот функционнал можно использовать в breadcrumb
@@ -128,8 +128,8 @@ foreach ($pathModels as $entry) {
 echo implode(' :: ', $resultArray);
 // name1 :: name10 :: name100 :: name100500
 
-// Вы можете это производить и в цикле, все обращения к БД кешируются.
-// TargetModel - это модель к котоой привязаны несколько веток дерева через таблицу много-ко-многим
+// Вы можете это производить и в цикле, все обращения к БД кэшируются.
+// TargetModel - это модель к которой привязаны несколько веток дерева через таблицу много-ко-многим
 $targetModel = TargetModel::model()->findByPk(666);
 $result = array();
 foreach ($targetModel->treetests as $entry) {
@@ -146,7 +146,7 @@ foreach ($targetModel->treetests as $entry) {
 return implode("\n ", $result);
 // name1 :: name10 :: name100 :: name100500
 // name1 :: name10 :: name100 :: name100501
-// Во второй строке вершины name1, name10, name100 были взяты из кеша
+// Во второй строке вершины name1, name10, name100 были взяты из кэша
 
 // получить корень текущей ветки
 $currentNode = Treetest::model()->findByPk(100500);
